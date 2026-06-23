@@ -1,0 +1,915 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  active
+  inactive
+}
+
+enum ProjectStatus {
+  active
+  archived
+  paused
+  closed
+}
+
+enum TaskStatus {
+  todo
+  in_progress
+  review
+  done
+  cancelled
+}
+
+enum Priority {
+  low
+  medium
+  high
+  critical
+}
+
+enum RoleScope {
+  portal
+  worker
+  client
+}
+
+enum UserRoleScope {
+  portal
+  project
+  organization
+  department
+}
+
+enum OrganizationRole {
+  owner
+  admin
+  member
+}
+
+enum DepartmentRole {
+  manager
+  member
+}
+
+enum UserProjectRole {
+  owner
+  manager
+  member
+  viewer
+}
+
+enum UserTaskType {
+  assignee
+  watcher
+}
+
+enum TransactionType {
+  deposit
+  withdrawal
+  payment
+}
+
+enum TransactionProjectType {
+  deposit
+  charge
+  refund
+  adjustment
+}
+
+enum TransactionStatus {
+  pending
+  completed
+  failed
+}
+
+enum NotificationType {
+  task_assigned
+  comment
+  mention
+  status_change
+}
+
+enum RoomType {
+  direct
+  group
+}
+
+enum InviteStatus {
+  pending
+  accepted
+  expired
+  revoked
+}
+
+enum PortalRequestStatus {
+  pending
+  accepted
+  rejected
+}
+
+enum AuditAction {
+  create
+  update
+  delete
+}
+
+enum AuditEntityType {
+  task
+  comment
+  project
+  user
+  organization
+}
+
+enum SubscriptionType {
+  email
+  push
+  socket
+}
+
+enum SubscriptionEntityType {
+  task
+  project
+  room
+}
+
+enum PricingMode {
+  fixed_budget
+  hourly
+}
+
+enum PaymentMode {
+  full
+  installments
+}
+
+enum PhaseType {
+  development
+  support
+  custom
+}
+
+enum PhaseStatus {
+  draft
+  active
+  completed
+  cancelled
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  overdue
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  avatar        String?
+  status        UserStatus @default(active)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  ownedPortals      Portal[]
+  userRoles         UserRole[]
+  userProjects      UserProject[]
+  userRooms         UserRoom[]
+  userOrganizations UserOrganization[]
+  userDepartments   UserDepartment[]
+
+  authoredTasks    Task[] @relation("TaskAuthor")
+  assignedTasks    Task[] @relation("TaskAssignee")
+  userTasks        UserTask[]
+  comments         Comment[]
+  chatMessages     ChatMessage[]
+  notifications    Notification[]
+  workLogs         WorkLog[]
+  monthlyStatistics MonthlyStatistic[]
+  wallet           Wallet?
+  clientProfile    ClientProfile?
+  workerProfile    WorkerProfile?
+  managedWorkers   WorkerProfile[] @relation("WorkerManager")
+  managedDepartments Department[]  @relation("DepartmentManager")
+  attachments      Attachment[]
+  sentInvites      Invite[]        @relation("InviteSender")
+  sentRequests     PortalRequest[] @relation("PortalRequestUser")
+  auditLogs        AuditLog[]
+  subscriptions    Subscription[]
+
+  @@map("users")
+}
+
+model Portal {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  ownerId     String
+  settings    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner         User           @relation(fields: [ownerId], references: [id])
+  projects      Project[]
+  organizations Organization[]
+  departments   Department[]
+  categories    Category[]
+  criticals     Critical[]
+  services      Service[]
+  tags          Tag[]
+  invites       Invite[]
+  joinRequests  PortalRequest[]
+
+  @@map("portals")
+}
+
+model Organization {
+  id            String   @id @default(uuid())
+  portalId      String
+  name          String
+  slug          String
+  description   String?
+  billingEmail  String?
+  billingAddress String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  portal  Portal            @relation(fields: [portalId], references: [id])
+  projects Project[]
+  users    UserOrganization[]
+  clientProfiles ClientProfile[]
+  invites  Invite[]
+  discounts OrganizationDiscount[]
+
+  @@unique([portalId, slug])
+  @@map("organizations")
+}
+
+model UserOrganization {
+  id             String           @id @default(uuid())
+  userId         String
+  organizationId String
+  role           OrganizationRole
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([userId, organizationId])
+  @@map("user_organizations")
+}
+
+model Project {
+  id             String        @id @default(uuid())
+  portalId       String
+  organizationId String?
+  slug           String
+  name           String
+  description    String?
+  status         ProjectStatus @default(active)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  portal       Portal          @relation(fields: [portalId], references: [id])
+  organization Organization?   @relation(fields: [organizationId], references: [id])
+  tasks        Task[]
+  rooms        Room[]
+  userProjects UserProject[]
+  wallet       WalletProject?
+  services     ProjectService[]
+  workLogs     WorkLog[]
+  statistics   MonthlyStatistic[]
+  taskStatistics TaskStatistic[]
+  invites      Invite[]
+  phases       ProjectPhase[]
+
+  @@unique([portalId, slug])
+  @@map("projects")
+}
+
+model Role {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  scope       RoleScope
+  permissions Json?
+  createdAt   DateTime  @default(now())
+
+  userRoles UserRole[]
+  userProjects UserProject[]
+  invites Invite[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  id        String        @id @default(uuid())
+  userId    String
+  roleId    String
+  scope     UserRoleScope
+  contextId String
+  createdAt DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  role Role @relation(fields: [roleId], references: [id])
+
+  @@map("user_roles")
+}
+
+model UserProject {
+  id        String          @id @default(uuid())
+  userId    String
+  projectId String
+  roleId    String
+  joinedAt  DateTime        @default(now())
+  leftAt    DateTime?
+
+  user    User    @relation(fields: [userId], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
+  role    Role    @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, projectId])
+  @@map("user_projects")
+}
+
+model Department {
+  id          String   @id @default(uuid())
+  portalId    String
+  name        String
+  description String?
+  managerId   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  portal   Portal             @relation(fields: [portalId], references: [id])
+  manager  User?              @relation("DepartmentManager", fields: [managerId], references: [id])
+  users    UserDepartment[]
+  workers  WorkerProfile[]
+  services DepartmentService[]
+
+  @@map("departments")
+}
+
+model UserDepartment {
+  id           String         @id @default(uuid())
+  userId       String
+  departmentId String
+  role         DepartmentRole
+  joinedAt     DateTime       @default(now())
+  leftAt       DateTime?
+
+  user       User       @relation(fields: [userId], references: [id])
+  department Department @relation(fields: [departmentId], references: [id])
+
+  @@unique([userId, departmentId])
+  @@map("user_departments")
+}
+
+model ClientProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  organizationId String?
+  jobTitle       String?
+  phone          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
+
+  @@map("client_profiles")
+}
+
+model WorkerProfile {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  departmentId String?
+  managerId    String?
+  position     String?
+  hourlyRate   Decimal? @db.Decimal(10, 2)
+  hireDate     DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id])
+  department Department? @relation(fields: [departmentId], references: [id])
+  manager    User?       @relation("WorkerManager", fields: [managerId], references: [id])
+
+  @@map("worker_profiles")
+}
+
+model Task {
+  id          String     @id @default(uuid())
+  projectId   String
+  authorId    String
+  assigneeId  String?
+  title       String
+  description String?
+  status      TaskStatus @default(todo)
+  priority    Priority   @default(medium)
+  criticalId  String?
+  categoryId  String?
+  dueDate     DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  project    Project       @relation(fields: [projectId], references: [id])
+  author     User          @relation("TaskAuthor", fields: [authorId], references: [id])
+  assignee   User?         @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  critical   Critical?     @relation(fields: [criticalId], references: [id])
+  category   Category?     @relation(fields: [categoryId], references: [id])
+  comments   Comment[]
+  userTasks  UserTask[]
+  workLogs   WorkLog[]
+  transactionProjects TransactionProject[]
+  attachments Attachment[]
+  taskTags   TaskTag[]
+  statistic  TaskStatistic?
+
+  @@map("tasks")
+}
+
+model UserTask {
+  id        String       @id @default(uuid())
+  userId    String
+  taskId    String
+  type      UserTaskType
+  createdAt DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  task Task @relation(fields: [taskId], references: [id])
+
+  @@unique([userId, taskId])
+  @@map("user_tasks")
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  taskId    String
+  userId    String
+  text      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  task Task @relation(fields: [taskId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  attachments Attachment[]
+
+  @@map("comments")
+}
+
+model Notification {
+  id         String           @id @default(uuid())
+  userId     String
+  type       NotificationType
+  title      String
+  body       String
+  entityType String?
+  entityId   String?
+  read       Boolean          @default(false)
+  createdAt  DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+model Room {
+  id        String   @id @default(uuid())
+  projectId String?
+  type      RoomType
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project?  @relation(fields: [projectId], references: [id])
+  users   UserRoom[]
+  messages ChatMessage[]
+
+  @@map("rooms")
+}
+
+model UserRoom {
+  id        String   @id @default(uuid())
+  userId    String
+  roomId    String
+  joinedAt  DateTime @default(now())
+  leftAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+  room Room @relation(fields: [roomId], references: [id])
+
+  @@unique([userId, roomId])
+  @@map("user_rooms")
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  roomId    String
+  userId    String
+  text      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  room Room @relation(fields: [roomId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("chat_messages")
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  portalId  String
+  name      String
+  color     String?
+  createdAt DateTime @default(now())
+
+  portal Portal @relation(fields: [portalId], references: [id])
+  tasks  Task[]
+
+  @@unique([portalId, name])
+  @@map("categories")
+}
+
+model Critical {
+  id        String   @id @default(uuid())
+  portalId  String
+  name      String
+  color     String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  portal Portal @relation(fields: [portalId], references: [id])
+  tasks  Task[]
+
+  @@unique([portalId, name])
+  @@map("critical")
+}
+
+model Wallet {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  balance   Decimal  @default(0) @db.Decimal(12, 2)
+  currency  String   @default("RUB")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id])
+  transactions Transaction[]
+
+  @@map("wallets")
+}
+
+model Transaction {
+  id          String           @id @default(uuid())
+  walletId    String
+  amount      Decimal          @db.Decimal(12, 2)
+  time        Int?
+  type        TransactionType
+  status      TransactionStatus @default(completed)
+  description String?
+  createdAt   DateTime         @default(now())
+
+  wallet Wallet @relation(fields: [walletId], references: [id])
+
+  @@map("transactions")
+}
+
+model WalletProject {
+  id        String   @id @default(uuid())
+  projectId String   @unique
+  balance   Decimal  @default(0) @db.Decimal(12, 2)
+  currency  String   @default("RUB")
+  totalTime Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project      Project               @relation(fields: [projectId], references: [id])
+  transactions TransactionProject[]
+  workLogs     WorkLog[]
+
+  @@map("wallets_projects")
+}
+
+model TransactionProject {
+  id              String                  @id @default(uuid())
+  walletProjectId String
+  workLogId       String?
+  taskId          String?
+  amount          Decimal                 @db.Decimal(12, 2)
+  time            Int?
+  type            TransactionProjectType
+  description     String?
+  createdAt       DateTime                @default(now())
+
+  phaseId       String?
+  walletProject WalletProject @relation(fields: [walletProjectId], references: [id])
+  workLog       WorkLog?      @relation(fields: [workLogId], references: [id])
+  task          Task?         @relation(fields: [taskId], references: [id])
+  phase         ProjectPhase? @relation(fields: [phaseId], references: [id])
+
+  @@map("transactions_projects")
+}
+
+model Service {
+  id            String   @id @default(uuid())
+  portalId      String
+  name          String
+  description   String?
+  pricePerHour  Decimal  @db.Decimal(10, 2)
+  currency      String   @default("RUB")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  portal            Portal               @relation(fields: [portalId], references: [id])
+  projects          ProjectService[]
+  workLogs          WorkLog[]
+  monthlyStatistics MonthlyStatistic[]
+  departmentRates   DepartmentService[]
+  orgDiscounts      OrganizationDiscount[]
+
+  @@unique([portalId, name])
+  @@map("services")
+}
+
+model ProjectService {
+  id                String   @id @default(uuid())
+  projectId         String
+  serviceId         String
+  enabled           Boolean  @default(true)
+  customPricePerHour Decimal? @db.Decimal(10, 2)
+  discountPercent   Decimal?  @db.Decimal(5, 2)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id])
+  service Service @relation(fields: [serviceId], references: [id])
+
+  @@unique([projectId, serviceId])
+  @@map("project_services")
+}
+
+model DepartmentService {
+  id           String   @id @default(uuid())
+  departmentId String
+  serviceId    String
+  pricePerHour Decimal  @db.Decimal(10, 2)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  department Department @relation(fields: [departmentId], references: [id])
+  service    Service    @relation(fields: [serviceId], references: [id])
+
+  @@unique([departmentId, serviceId])
+  @@map("department_services")
+}
+
+model OrganizationDiscount {
+  id             String    @id @default(uuid())
+  organizationId String
+  serviceId      String?
+  discountPercent Decimal  @db.Decimal(5, 2)
+  validFrom      DateTime  @db.Date
+  validTo        DateTime  @db.Date
+  reason         String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  service      Service?     @relation(fields: [serviceId], references: [id])
+
+  @@map("organization_discounts")
+}
+
+model WorkLog {
+  id          String   @id @default(uuid())
+  userId      String
+  taskId      String?
+  projectId   String
+  serviceId   String
+  description String?
+  time        Int
+  date        DateTime @db.Date
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  phaseId         String?
+  resolvedRate    Decimal?  @db.Decimal(10, 2)
+  amount          Decimal?  @db.Decimal(12, 2)
+  walletProjectId String?
+  user        User                 @relation(fields: [userId], references: [id])
+  task        Task?                @relation(fields: [taskId], references: [id])
+  project     Project              @relation(fields: [projectId], references: [id])
+  service     Service              @relation(fields: [serviceId], references: [id])
+  wallet      WalletProject?       @relation(fields: [walletProjectId], references: [id])
+  phase       ProjectPhase?        @relation(fields: [phaseId], references: [id])
+  transactions TransactionProject[]
+
+  @@map("work_logs")
+}
+
+model ProjectPhase {
+  id              String      @id @default(uuid())
+  projectId       String
+  name            String
+  type            PhaseType   @default(development)
+  pricingMode     PricingMode @default(hourly)
+  budgetTotal     Decimal?    @db.Decimal(14, 2)
+  spentAmount     Decimal     @default(0) @db.Decimal(14, 2)
+  paymentMode     PaymentMode?
+  installmentAmount Decimal?  @db.Decimal(14, 2)
+  billingPeriod   String?     // "monthly", "quarterly"
+  currency        String      @default("RUB")
+  status          PhaseStatus @default(draft)
+  isCurrent       Boolean     @default(false)
+  startDate       DateTime?   @db.Date
+  endDate         DateTime?   @db.Date
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  project      Project              @relation(fields: [projectId], references: [id])
+  workLogs     WorkLog[]
+  payments     ProjectPayment[]
+  transactions TransactionProject[]
+
+  @@map("project_phases")
+}
+
+model ProjectPayment {
+  id                   String        @id @default(uuid())
+  phaseId              String
+  amount               Decimal       @db.Decimal(14, 2)
+  dueDate              DateTime      @db.Date
+  paidAt               DateTime?
+  status               PaymentStatus @default(pending)
+  transactionProjectId String?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  phase               ProjectPhase       @relation(fields: [phaseId], references: [id])
+
+  @@map("project_payments")
+}
+
+model MonthlyStatistic {
+  id        String   @id @default(uuid())
+  projectId String
+  userId    String?
+  serviceId String?
+  year      Int
+  month     Int
+  totalMinutes Int
+  totalAmount  Decimal @default(0) @db.Decimal(12, 2)
+  totalTransactions Int @default(0)
+  currency  String   @default("RUB")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project  @relation(fields: [projectId], references: [id])
+  user    User?    @relation(fields: [userId], references: [id])
+  service Service? @relation(fields: [serviceId], references: [id])
+
+  @@unique([projectId, userId, serviceId, year, month])
+  @@map("monthly_statistics")
+}
+
+model TaskStatistic {
+  id                String   @id @default(uuid())
+  taskId            String   @unique
+  projectId         String
+  totalTransactions Int      @default(0)
+  totalMinutes      Int      @default(0)
+  totalAmount       Decimal  @default(0) @db.Decimal(12, 2)
+  currency          String   @default("RUB")
+  lastUpdatedAt     DateTime @updatedAt
+
+  task    Task    @relation(fields: [taskId], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@map("task_statistics")
+}
+
+model Attachment {
+  id          String   @id @default(uuid())
+  taskId      String?
+  commentId   String?
+  fileName    String
+  fileUrl     String
+  fileSize    Int
+  mimeType    String
+  uploadedById String
+  createdAt   DateTime @default(now())
+
+  task     Task?    @relation(fields: [taskId], references: [id])
+  comment  Comment? @relation(fields: [commentId], references: [id])
+  uploadedBy User @relation(fields: [uploadedById], references: [id])
+
+  @@index([taskId])
+  @@index([commentId])
+  @@map("attachments")
+}
+
+model Invite {
+  id             String       @id @default(uuid())
+  email          String
+  portalId       String
+  projectId      String?
+  organizationId String?
+  roleId         String
+  status         InviteStatus @default(pending)
+  token          String       @unique
+  invitedById    String
+  expiresAt      DateTime
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  portal       Portal         @relation(fields: [portalId], references: [id])
+  project      Project?       @relation(fields: [projectId], references: [id])
+  organization Organization?  @relation(fields: [organizationId], references: [id])
+  role         Role           @relation(fields: [roleId], references: [id])
+  invitedBy    User           @relation("InviteSender", fields: [invitedById], references: [id])
+
+  @@map("invites")
+}
+
+model PortalRequest {
+  id        String              @id @default(uuid())
+  userId    String
+  portalId  String
+  status    PortalRequestStatus @default(pending)
+  message   String?
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  user   User   @relation("PortalRequestUser", fields: [userId], references: [id])
+  portal Portal @relation(fields: [portalId], references: [id])
+
+  @@unique([userId, portalId])
+  @@map("portal_requests")
+}
+
+model AuditLog {
+  id         String          @id @default(uuid())
+  entityType AuditEntityType
+  entityId   String
+  action     AuditAction
+  userId     String
+  oldValue   Json?
+  newValue   Json?
+  createdAt  DateTime        @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([userId, createdAt])
+  @@map("audit_logs")
+}
+
+model Tag {
+  id        String   @id @default(uuid())
+  portalId  String
+  name      String
+  color     String?
+  createdAt DateTime @default(now())
+
+  portal   Portal    @relation(fields: [portalId], references: [id])
+  taskTags TaskTag[]
+
+  @@unique([portalId, name])
+  @@map("tags")
+}
+
+model TaskTag {
+  id     String @id @default(uuid())
+  taskId String
+  tagId  String
+
+  task Task @relation(fields: [taskId], references: [id])
+  tag  Tag  @relation(fields: [tagId], references: [id])
+
+  @@unique([taskId, tagId])
+  @@map("task_tags")
+}
+
+model Subscription {
+  id         String                  @id @default(uuid())
+  userId     String
+  entityType SubscriptionEntityType
+  entityId   String
+  type       SubscriptionType
+  createdAt  DateTime                @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, entityType, entityId])
+  @@map("subscriptions")
+}
