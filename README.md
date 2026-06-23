@@ -38,13 +38,10 @@
 ### 4. Роли
 - Роли с понятными названиями в UI:
   - `portal_admin` → "Администратор портала"
-  - `portal_manager` → "Менеджер портала"
-  - `client_project_owner` → "Владелец проектов клиента"
-  - `client_project_member` → "Участник проектов клиента"
-  - `client_viewer` → "Наблюдатель клиента"
-  - `worker_admin` → "Администратор работников"
-  - `worker_manager` → "Менеджер работников"
-  - `worker_executor` → "Исполнитель"
+  - `owner` → "Владелец клиентской организации"
+  - `client_manager` → "Менеджер клиента" (только свои проекты)
+  - `project_manager` → "Менеджер проектов" (исполнитель)
+  - `executor` → "Исполнитель"
 - API для получения ролей и доступных ролей для назначения
 
 ### 5. Управление пользователями
@@ -88,6 +85,52 @@
 - Назначение отделов работникам
 - Скрытие выбора отдела для клиентских ролей в UI
 
+### 10. Задачи (Tasks)
+- Kanban-доска в ProjectPage (статусы: todo, in_progress, review, done, cancelled)
+- Создание задач с заголовком, описанием, приоритетом, назначенным исполнителем
+- Изменение статуса задачи через NativeSelect
+- Комментарии к задачам с отображением автора и даты
+- Теги задач
+- Socket.IO: real-time обновления задач и комментариев по всем участникам проекта
+
+### 11. Трекинг времени и биллинг (WorkLogs)
+- WorkLogForm на React Hook Form + Zod
+- Два input: **Часы** и **Минуты** с автоматическим пересчётом друг в друга
+- Frontend вводит часы → backend хранит минуты → отображается в часах
+- Расчёт стоимости: `resolvedRate * hours` через связанную услугу проекта
+- Автоматическое списание с кошелька проекта
+- Статистика по задачам и проектам
+
+### 12. Уведомления (Notifications)
+- Backend: CRUD уведомлений, отправка при событиях задач
+- Frontend: NotificationBell — badge с количеством непрочитанных + dropdown-список
+- Socket.IO: real-time доставка новых уведомлений
+- Метки прочитано/непрочитано + "Отметить всё как прочитанное"
+
+### 13. Приглашения (Invites)
+- Создание приглашения по email (с ролью и проектом)
+- Генерация токена и срок действия
+- Страница AcceptInvitePage для принятия приглашения
+- Привязка пользователя к порталу/проекту при принятии
+
+### 14. Файлы (Attachments)
+- Прикрепление файлов к задачам и комментариям
+- Список файлов в диалоге задачи
+
+### 15. Аудит (Audit Logs)
+- Автоматическая запись изменений задач и комментариев
+- Тип действия: create, update, delete
+- Хранение старых и новых значений
+
+### 16. Статистика (Statistics)
+- Project stats: totalSpent, totalMinutes, totalTransactions
+- Task stats: totalAmount, totalMinutes
+- User stats: суммарные показатели по пользователю
+
+### 17. Rate Limiting
+- In-memory middleware: 100 запросов/минуту
+- Ответ `429` при превышении лимита
+
 ## Структура проекта
 
 ```
@@ -105,7 +148,14 @@ d:\tasks\
 │   │   ├── userController.ts
 │   │   ├── roleController.ts
 │   │   ├── departmentController.ts
-│   │   └── organizationController.ts
+│   │   ├── organizationController.ts
+│   │   ├── taskController.ts
+│   │   ├── notificationController.ts
+│   │   ├── inviteController.ts
+│   │   ├── attachmentController.ts
+│   │   ├── statisticsController.ts
+│   │   ├── auditLogController.ts
+│   │   └── workLogController.ts
 │   ├── services/
 │   │   ├── authService.ts
 │   │   ├── portalService.ts
@@ -113,7 +163,16 @@ d:\tasks\
 │   │   ├── userManagementService.ts
 │   │   ├── roleService.ts
 │   │   ├── departmentService.ts
-│   │   └── organizationService.ts
+│   │   ├── organizationService.ts
+│   │   ├── taskService.ts
+│   │   ├── commentService.ts
+│   │   ├── tagService.ts
+│   │   ├── notificationService.ts
+│   │   ├── inviteService.ts
+│   │   ├── attachmentService.ts
+│   │   ├── statisticsService.ts
+│   │   ├── auditLogService.ts
+│   │   └── workLogService.ts
 │   ├── routes/
 │   │   ├── authRoutes.ts
 │   │   ├── portalRoutes.ts
@@ -121,7 +180,17 @@ d:\tasks\
 │   │   ├── userRoutes.ts
 │   │   ├── roleRoutes.ts
 │   │   ├── departmentRoutes.ts
-│   │   └── organizationRoutes.ts
+│   │   ├── organizationRoutes.ts
+│   │   ├── taskRoutes.ts
+│   │   ├── notificationRoutes.ts
+│   │   ├── inviteRoutes.ts
+│   │   ├── attachmentRoutes.ts
+│   │   ├── statisticsRoutes.ts
+│   │   ├── auditLogRoutes.ts
+│   │   └── workLogRoutes.ts
+│   ├── middleware/
+│   │   ├── auth.ts
+│   │   └── rateLimit.ts
 │   ├── middleware/auth.ts
 │   ├── lib/jwt.ts, password.ts
 │   └── models/user.ts
@@ -136,14 +205,21 @@ d:\tasks\
 │       │   ├── OrganizationPage.tsx
 │       │   ├── ProjectPage.tsx
 │       │   ├── LoginPage.tsx
-│       │   └── RegisterPage.tsx
+│       │   ├── RegisterPage.tsx
+│       │   └── AcceptInvitePage.tsx
 │       └── features/
 │           ├── portal/
 │           ├── project/
 │           ├── organization/
 │           ├── user/
 │           ├── role/
-│           └── department/
+│           ├── department/
+│           ├── task/
+│           ├── workLog/
+│           ├── notification/
+│           ├── invite/
+│           ├── attachment/
+│           └── statistics/
 └── pricing-design.md          # Дизайн ценообразования
 ```
 
@@ -171,12 +247,27 @@ d:\tasks\
 | GET | `/api/users/portal` | Пользователи портала |
 | POST | `/api/users/portal` | Создать пользователя в портале |
 | GET | `/api/users/creatable-roles` | Доступные роли для назначения |
+| GET/POST | `/api/tasks` | Список/создание задач |
+| PATCH | `/api/tasks/:id/status` | Изменить статус задачи |
+| GET/POST | `/api/tasks/:id/comments` | Комментарии к задаче |
+| GET/POST | `/api/notifications` | Уведомления пользователя |
+| POST | `/api/notifications/:id/read` | Отметить прочитанным |
+| GET/POST | `/api/invites` | Приглашения |
+| POST | `/api/invites/:token/accept` | Принять приглашение |
+| GET/POST | `/api/attachments` | Файлы задач |
+| GET/POST | `/api/worklogs` | Трекинг времени |
+| GET | `/api/statistics/projects/:id` | Статистика проекта |
+| GET | `/api/statistics/tasks/:id` | Статистика задачи |
+| GET | `/api/audit-logs` | Аудит изменений |
 
 ## Дальнейшие шаги
 
-- Клиентские UI-представления (role-based views)
-- Управление отделами и организациями (полный CRUD)
-- Уведомления о новых запросах на вступление
+- Role-based views в UI (скрытие/показ элементов по ролям)
+- Drag-and-drop Kanban для изменения статуса задач
 - Прайс-листы (клиентский и внутренний)
 - График платежей по фазам (installments)
-- Логирование рабочих часов (WorkLogs)
+- Email-уведомления (SendGrid/Resend)
+- Redis pub/sub для масштабирования Socket.IO
+- Zod-валидация на всех входах API
+- Unit/интеграционные тесты
+- CI/CD pipeline

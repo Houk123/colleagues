@@ -8,6 +8,7 @@ import type {
 import { socketAuth } from "./middlewares/auth.js";
 import { registerChatHandler } from "./handlers/chatHandler.js";
 import { registerNotificationHandler } from "./handlers/notificationHandler.js";
+import { registerTaskHandler } from "./handlers/taskHandler.js";
 
 export function initSocket(
   io: Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>,
@@ -21,6 +22,7 @@ export function initSocket(
 
     registerChatHandler(socket, io);
     registerNotificationHandler(socket, io);
+    registerTaskHandler(socket, io);
 
     socket.on("disconnect", () => {
       console.log("A user disconnected:", socket.id);

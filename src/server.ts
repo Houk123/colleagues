@@ -3,6 +3,7 @@ import http from "http";
 import { Server } from "socket.io";
 import app from "./app.js";
 import { initSocket } from "./sockets/index.js";
+import { setIo } from "./sockets/io.js";
 import type {
   ClientToServerEvents,
   ServerToClientEvents,
@@ -19,6 +20,7 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEve
   },
 });
 
+setIo(io);
 initSocket(io);
 
 const PORT = Number(process.env.PORT) || 4000;

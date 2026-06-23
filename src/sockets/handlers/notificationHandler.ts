@@ -6,6 +6,7 @@ import type {
   SocketData,
   Notification,
 } from "../../../shared/types.js";
+import { markAsRead } from "../../services/notificationService.js";
 
 type TypedSocket = Socket<
   ClientToServerEvents,
@@ -25,9 +26,13 @@ export function registerNotificationHandler(
   socket: TypedSocket,
   _io: TypedServer,
 ): void {
-  socket.on("markNotificationRead", (id: string) => {
-    // TODO: persist read status
-    console.log(`Notification ${id} marked as read by ${socket.data.userId}`);
+  socket.on("markNotificationRead", async (id: string) => {
+    try {
+      await markAsRead(id);
+      console.log(`Notification ${id} marked as read by ${socket.data.userId}`);
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err);
+    }
   });
 }
 

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, Navigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Box,
   Button,
@@ -15,12 +15,20 @@ import {
   Badge,
   Input,
   NativeSelect,
+  Textarea,
 } from "@chakra-ui/react";
 import { useProjectBySlug, useProjectPhases, useCreatePhase, useProjectServices, useAddProjectService, useProjectTransactions, useCreateTransaction, useAddProjectMember } from "@/features/project/model/useProjects.js";
 import { usePortalServices, useCreatePortalService } from "@/features/portal/model/useServices.js";
 import { fetchPortalBySlug } from "@/features/portal/api/portalApi.js";
 import { usePortalUsers } from "@/features/user/model/useUserManagement.js";
 import { useRoles } from "@/features/role/model/useRoles.js";
+import { useTasks, useCreateTask, useUpdateTaskStatus, useComments, useCreateComment } from "@/features/task/model/useTasks.js";
+import { useWorkLogsByTask } from "@/features/workLog/model/useWorkLogs.js";
+import WorkLogForm from "@/features/workLog/ui/WorkLogForm.js";
+import { useAttachmentsByTask, useCreateAttachment } from "@/features/attachment/model/useAttachments.js";
+import { useProjectStatistics } from "@/features/statistics/model/useStatistics.js";
+import { useAuthStore } from "@/entities/user/model/authStore.js";
+import { useSocket } from "@/shared/hooks/useSocket.js";
 
 export default function ProjectPage() {
   const { portalSlug, orgSlug, projectSlug } = useParams<{
@@ -37,6 +45,16 @@ export default function ProjectPage() {
   const [memberOpen, setMemberOpen] = useState(false);
   const [memberUserId, setMemberUserId] = useState("");
   const [memberRoleId, setMemberRoleId] = useState("");
+
+  const [taskOpen, setTaskOpen] = useState(false);
+  const [taskDetailOpen, setTaskDetailOpen] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDesc, setNewTaskDesc] = useState("");
+  const [newTaskPriority, setNewTaskPriority] = useState<"low" | "medium" | "high" | "critical">("medium");
+  const [newTaskAssignee, setNewTaskAssignee] = useState("");
+  const [fileUrl, setFileUrl] = useState("");
+  const [fileName, setFileName] = useState("");
 
   const { data: portal } = useQuery({
     queryKey: ["portal", portalSlug],
@@ -59,6 +77,55 @@ export default function ProjectPage() {
   const addMember = useAddProjectMember();
   const { data: portalUsers } = usePortalUsers(portal?.id ?? "");
   const { data: allRoles } = useRoles();
+
+  const { data: tasks } = useTasks(projectId);
+  const createTask = useCreateTask();
+  const updateTaskStatus = useUpdateTaskStatus();
+  const { data: taskComments } = useComments(selectedTaskId ?? "");
+  const createComment = useCreateComment();
+  const { data: taskWorkLogs } = useWorkLogsByTask(selectedTaskId ?? "");
+  const createAttachment = useCreateAttachment();
+  const { data: taskAttachments } = useAttachmentsByTask(selectedTaskId ?? "");
+  const { data: projectStats } = useProjectStatistics(projectId);
+
+  const queryClient = useQueryClient();
+  const user = useAuthStore((s) => s.user);
+  const socketRef = useSocket(user?.id ?? null);
+
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (!socket || !projectId) return;
+
+    socket.emit("joinProject", projectId);
+
+    const handleTaskCreated = () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+    };
+    const handleTaskUpdated = () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["task"] });
+    };
+    const handleTaskDeleted = () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+    };
+    const handleCommentCreated = () => {
+      queryClient.invalidateQueries({ queryKey: ["comments"] });
+      queryClient.invalidateQueries({ queryKey: ["task"] });
+    };
+
+    socket.on("taskCreated", handleTaskCreated);
+    socket.on("taskUpdated", handleTaskUpdated);
+    socket.on("taskDeleted", handleTaskDeleted);
+    socket.on("commentCreated", handleCommentCreated);
+
+    return () => {
+      socket.emit("leaveProject", projectId);
+      socket.off("taskCreated", handleTaskCreated);
+      socket.off("taskUpdated", handleTaskUpdated);
+      socket.off("taskDeleted", handleTaskDeleted);
+      socket.off("commentCreated", handleCommentCreated);
+    };
+  }, [socketRef, projectId, queryClient]);
 
   if (!portalSlug || !orgSlug || !projectSlug) {
     return <Navigate to="/" replace />;
@@ -124,10 +191,24 @@ export default function ProjectPage() {
 
       <Tabs.Root defaultValue="phases">
         <Tabs.List>
+          <Tabs.Trigger value="tasks">Задачи</Tabs.Trigger>
           <Tabs.Trigger value="phases">Фазы</Tabs.Trigger>
           <Tabs.Trigger value="services">Услуги</Tabs.Trigger>
           <Tabs.Trigger value="transactions">Транзакции</Tabs.Trigger>
+          <Tabs.Trigger value="statistics">Статистика</Tabs.Trigger>
         </Tabs.List>
+
+        <Tabs.Content value="tasks">
+          <Stack gap="4" mt="4">
+            <Button onClick={() => setTaskOpen(true)} colorScheme="blue" w="fit-content">
+              + Создать задачу
+            </Button>
+            <KanbanBoard
+              tasks={tasks ?? []}
+              onTaskClick={(taskId) => { setSelectedTaskId(taskId); setTaskDetailOpen(true); }}
+            />
+          </Stack>
+        </Tabs.Content>
 
         <Tabs.Content value="phases">
           <Stack gap="4" mt="4">
@@ -222,6 +303,39 @@ export default function ProjectPage() {
               ))}
             </Stack>
             {!transactions?.length && <Text color="gray.500">Нет транзакций.</Text>}
+          </Stack>
+        </Tabs.Content>
+
+        <Tabs.Content value="statistics">
+          <Stack gap="4" mt="4">
+            <Stack direction="row" gap="4">
+              <Card.Root p="4" flex="1">
+                <Card.Body>
+                  <Text color="gray.500">Всего потрачено</Text>
+                  <Heading size="lg">{projectStats?.totalSpent ?? 0} ₽</Heading>
+                </Card.Body>
+              </Card.Root>
+              <Card.Root p="4" flex="1">
+                <Card.Body>
+                  <Text color="gray.500">Всего минут</Text>
+                  <Heading size="lg">{projectStats?.totalMinutes ?? 0}</Heading>
+                </Card.Body>
+              </Card.Root>
+            </Stack>
+            <Heading size="sm">По задачам</Heading>
+            <Stack gap="2">
+              {projectStats?.taskStats.map((ts) => (
+                <Card.Root key={ts.id} p="2">
+                  <Card.Body>
+                    <Stack direction="row" justify="space-between">
+                      <Text fontSize="sm">{ts.task.title}</Text>
+                      <Text fontSize="sm">{ts.totalAmount} ₽ / {ts.totalMinutes} мин</Text>
+                    </Stack>
+                  </Card.Body>
+                </Card.Root>
+              ))}
+              {!projectStats?.taskStats.length && <Text color="gray.500">Нет данных.</Text>}
+            </Stack>
           </Stack>
         </Tabs.Content>
       </Tabs.Root>
@@ -355,6 +469,189 @@ export default function ProjectPage() {
                     Добавить
                   </Button>
                 </Stack>
+              </Dialog.Body>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
+
+      {/* Create Task Dialog */}
+      <Dialog.Root open={taskOpen} onOpenChange={(e) => setTaskOpen(e.open)}>
+        <Portal>
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content>
+              <Dialog.Header><Dialog.Title>Создать задачу</Dialog.Title></Dialog.Header>
+              <Dialog.Body>
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (!newTaskTitle || !projectId) return;
+                    await createTask.mutateAsync({
+                      projectId,
+                      title: newTaskTitle,
+                      description: newTaskDesc || undefined,
+                      priority: newTaskPriority,
+                      assigneeId: newTaskAssignee || undefined,
+                    });
+                    setNewTaskTitle("");
+                    setNewTaskDesc("");
+                    setNewTaskPriority("medium");
+                    setNewTaskAssignee("");
+                    setTaskOpen(false);
+                  }}
+                >
+                  <Stack gap="4">
+                    <Input placeholder="Название" value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)} required />
+                    <Textarea placeholder="Описание" value={newTaskDesc} onChange={(e) => setNewTaskDesc(e.target.value)} />
+                    <NativeSelect.Root>
+                      <NativeSelect.Field value={newTaskPriority} onChange={(e) => setNewTaskPriority(e.target.value as any)}>
+                        <option value="low">Низкий</option>
+                        <option value="medium">Средний</option>
+                        <option value="high">Высокий</option>
+                        <option value="critical">Критический</option>
+                      </NativeSelect.Field>
+                    </NativeSelect.Root>
+                    <NativeSelect.Root>
+                      <NativeSelect.Field value={newTaskAssignee} onChange={(e) => setNewTaskAssignee(e.target.value)}>
+                        <option value="">Исполнитель (необязательно)</option>
+                        {project?.userProjects.map((up) => (
+                          <option key={up.userId} value={up.userId}>{up.user.name || up.user.email}</option>
+                        ))}
+                      </NativeSelect.Field>
+                    </NativeSelect.Root>
+                    <Button type="submit" loading={createTask.isPending} colorScheme="blue">Создать</Button>
+                  </Stack>
+                </form>
+              </Dialog.Body>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
+
+      {/* Task Detail Dialog */}
+      <Dialog.Root open={taskDetailOpen} onOpenChange={(e) => setTaskDetailOpen(e.open)}>
+        <Portal>
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content maxW="600px">
+              <Dialog.Header>
+                <Dialog.Title>{tasks?.find((t) => t.id === selectedTaskId)?.title ?? "Задача"}</Dialog.Title>
+              </Dialog.Header>
+              <Dialog.Body>
+                {(() => {
+                  const task = tasks?.find((t) => t.id === selectedTaskId);
+                  if (!task) return <Text>Загрузка...</Text>;
+                  return (
+                    <Stack gap="4">
+                      <Text color="gray.600">{task.description || "Нет описания"}</Text>
+                      <Stack direction="row" gap="2" wrap="wrap">
+                        <Badge colorScheme={task.status === "done" ? "green" : task.status === "in_progress" ? "blue" : "gray"}>{task.status}</Badge>
+                        <Badge colorScheme={task.priority === "critical" ? "red" : task.priority === "high" ? "orange" : "gray"}>{task.priority}</Badge>
+                        {task.assignee && <Text fontSize="sm">Исполнитель: {task.assignee.name || task.assignee.email}</Text>}
+                      </Stack>
+                      <NativeSelect.Root>
+                        <NativeSelect.Field
+                          value={task.status}
+                          onChange={(e) => updateTaskStatus.mutate({ taskId: task.id, status: e.target.value as any })}
+                        >
+                          <option value="todo">К выполнению</option>
+                          <option value="in_progress">В работе</option>
+                          <option value="review">На review</option>
+                          <option value="done">Готово</option>
+                          <option value="cancelled">Отменено</option>
+                        </NativeSelect.Field>
+                      </NativeSelect.Root>
+                      <Heading size="sm">Трек времени</Heading>
+                      {selectedTaskId && projectId && (
+                        <WorkLogForm
+                          projectId={projectId}
+                          taskId={selectedTaskId}
+                          serviceOptions={projectServices ?? []}
+                        />
+                      )}
+                      <Stack gap="2" maxH="160px" overflowY="auto">
+                        {taskWorkLogs?.map((wl) => (
+                          <Card.Root key={wl.id} p="2">
+                            <Card.Body>
+                              <Stack direction="row" justify="space-between">
+                                <Text fontSize="sm">{wl.user.name || wl.user.email} — {(wl.time / 60).toFixed(2)} ч</Text>
+                                <Text fontSize="sm" color="green.600">{wl.amount ? `−${wl.amount}` : ""}</Text>
+                              </Stack>
+                              {wl.description && <Text fontSize="xs" color="gray.500">{wl.description}</Text>}
+                            </Card.Body>
+                          </Card.Root>
+                        ))}
+                        {!taskWorkLogs?.length && <Text color="gray.500" fontSize="sm">Нет записей.</Text>}
+                      </Stack>
+                      <Heading size="sm">Комментарии</Heading>
+                      <Stack gap="2" maxH="240px" overflowY="auto">
+                        {taskComments?.map((c) => (
+                          <Card.Root key={c.id} p="2">
+                            <Card.Body>
+                              <Text fontSize="sm" fontWeight="bold">{c.user.name || c.user.email}</Text>
+                              <Text fontSize="sm">{c.text}</Text>
+                            </Card.Body>
+                          </Card.Root>
+                        ))}
+                        {!taskComments?.length && <Text color="gray.500" fontSize="sm">Нет комментариев.</Text>}
+                      </Stack>
+                      <form
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          const form = e.currentTarget as HTMLFormElement;
+                          const fd = new FormData(form);
+                          const text = fd.get("commentText") as string;
+                          if (!text || !selectedTaskId) return;
+                          await createComment.mutateAsync({ taskId: selectedTaskId, text });
+                          form.reset();
+                        }}
+                      >
+                        <Stack direction="row" gap="2">
+                          <Input name="commentText" placeholder="Написать комментарий..." required />
+                          <Button type="submit" loading={createComment.isPending} size="sm" colorScheme="blue">Отправить</Button>
+                        </Stack>
+                      </form>
+                      <Heading size="sm">Файлы</Heading>
+                      <Stack gap="2" maxH="160px" overflowY="auto">
+                        {taskAttachments?.map((att) => (
+                          <Card.Root key={att.id} p="2">
+                            <Card.Body>
+                              <Stack direction="row" justify="space-between" align="center">
+                                <Text fontSize="sm">
+                                  <a href={att.fileUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>{att.fileName}</a>
+                                </Text>
+                                <Text fontSize="xs" color="gray.500">{att.uploadedBy.name || att.uploadedBy.email}</Text>
+                              </Stack>
+                            </Card.Body>
+                          </Card.Root>
+                        ))}
+                        {!taskAttachments?.length && <Text color="gray.500" fontSize="sm">Нет файлов.</Text>}
+                      </Stack>
+                      <form
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          if (!fileUrl || !fileName || !selectedTaskId) return;
+                          await createAttachment.mutateAsync({
+                            fileName,
+                            fileUrl,
+                            taskId: selectedTaskId,
+                          });
+                          setFileUrl("");
+                          setFileName("");
+                        }}
+                      >
+                        <Stack gap="2">
+                          <Stack direction="row" gap="2">
+                            <Input placeholder="Название файла" value={fileName} onChange={(e) => setFileName(e.target.value)} required />
+                            <Input placeholder="URL файла" value={fileUrl} onChange={(e) => setFileUrl(e.target.value)} required />
+                          </Stack>
+                          <Button type="submit" loading={createAttachment.isPending} size="sm" colorScheme="blue">Прикрепить файл</Button>
+                        </Stack>
+                      </form>
+                    </Stack>
+                  );
+                })()}
               </Dialog.Body>
             </Dialog.Content>
           </Dialog.Positioner>
@@ -543,5 +840,61 @@ function DepositForm({
         <Button type="submit" loading={createTransaction.isPending} colorScheme="green">Пополнить</Button>
       </Stack>
     </form>
+  );
+}
+
+function KanbanBoard({
+  tasks,
+  onTaskClick,
+}: {
+  tasks: { id: string; title: string; status: string; priority: string; assignee: { name: string; email: string } | null; taskTags: { tag: { name: string; color: string | null } }[] }[];
+  onTaskClick: (taskId: string) => void;
+}) {
+  const columns: { key: string; label: string; color: string }[] = [
+    { key: "todo", label: "К выполнению", color: "gray" },
+    { key: "in_progress", label: "В работе", color: "blue" },
+    { key: "review", label: "На review", color: "purple" },
+    { key: "done", label: "Готово", color: "green" },
+  ];
+
+  return (
+    <Grid templateColumns="repeat(4, 1fr)" gap="4" alignItems="start">
+      {columns.map((col) => (
+        <Stack key={col.key} gap="3">
+          <Text fontWeight="bold" color={`${col.color}.600`}>{col.label}</Text>
+          <Stack gap="2">
+            {tasks
+              .filter((t) => t.status === col.key)
+              .map((t) => (
+                <Card.Root
+                  key={t.id}
+                  p="3"
+                  borderWidth="1px"
+                  cursor="pointer"
+                  _hover={{ shadow: "sm", borderColor: "blue.300" }}
+                  onClick={() => onTaskClick(t.id)}
+                >
+                  <Card.Body>
+                    <Text fontWeight="medium" mb="1">{t.title}</Text>
+                    <Stack direction="row" gap="1" mb="1">
+                      {t.taskTags.map((tt) => (
+                        <Badge key={tt.tag.name} size="sm" colorScheme={tt.tag.color ? undefined : "blue"} bg={tt.tag.color ?? undefined}>
+                          {tt.tag.name}
+                        </Badge>
+                      ))}
+                    </Stack>
+                    <Text fontSize="xs" color="gray.500">
+                      {t.assignee ? t.assignee.name || t.assignee.email : "Не назначен"}
+                    </Text>
+                  </Card.Body>
+                </Card.Root>
+              ))}
+            {tasks.filter((t) => t.status === col.key).length === 0 && (
+              <Text color="gray.400" fontSize="sm">Нет задач</Text>
+            )}
+          </Stack>
+        </Stack>
+      ))}
+    </Grid>
   );
 }

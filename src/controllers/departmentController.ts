@@ -16,3 +16,43 @@ export async function listDepartments(req: AuthRequest, res: Response): Promise<
     res.status(400).json({ error: message });
   }
 }
+
+export async function createDepartment(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const { name, description, managerId, portalId } = req.body;
+    if (!name || !portalId) {
+      res.status(400).json({ error: "name and portalId are required" });
+      return;
+    }
+    const department = await departmentService.createDepartment({
+      name,
+      description,
+      managerId,
+      portalId,
+    });
+    res.status(201).json({ department });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to create department";
+    res.status(400).json({ error: message });
+  }
+}
+
+export async function addDepartmentMember(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const { userId, role } = req.body;
+    if (!userId) {
+      res.status(400).json({ error: "userId is required" });
+      return;
+    }
+    const member = await departmentService.addDepartmentMember(
+      id,
+      userId,
+      role || "member",
+    );
+    res.status(201).json({ member });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to add member";
+    res.status(400).json({ error: message });
+  }
+}

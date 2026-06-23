@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import { rateLimit } from "./middleware/rateLimit.js";
 import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import portalRoutes from "./routes/portalRoutes.js";
@@ -10,6 +11,13 @@ import organizationRoutes from "./routes/organizationRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
 import roleRoutes from "./routes/roleRoutes.js";
 import departmentRoutes from "./routes/departmentRoutes.js";
+import taskRoutes from "./routes/taskRoutes.js";
+import auditLogRoutes from "./routes/auditLogRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
+import workLogRoutes from "./routes/workLogRoutes.js";
+import inviteRoutes from "./routes/inviteRoutes.js";
+import attachmentRoutes from "./routes/attachmentRoutes.js";
+import statisticsRoutes from "./routes/statisticsRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,6 +42,7 @@ app.use(
   }),
 );
 app.use(express.json());
+app.use(rateLimit);
 
 const publicPath = path.resolve(__dirname, "../tasks-frontend/dist");
 app.use(express.static(publicPath));
@@ -45,6 +54,13 @@ app.use("/api/organizations", organizationRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/roles", roleRoutes);
 app.use("/api/departments", departmentRoutes);
+app.use("/api/tasks", taskRoutes);
+app.use("/api/audit-logs", auditLogRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/worklogs", workLogRoutes);
+app.use("/api/invites", inviteRoutes);
+app.use("/api/attachments", attachmentRoutes);
+app.use("/api/statistics", statisticsRoutes);
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
