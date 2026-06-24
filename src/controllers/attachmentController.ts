@@ -1,6 +1,33 @@
 import type { Response } from "express";
+import path from "path";
 import type { AuthRequest } from "../middleware/auth.js";
 import * as attachmentService from "../services/attachmentService.js";
+
+export async function uploadFile(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user!.userId;
+    const file = req.file;
+    const { taskId, commentId } = req.body;
+    if (!file) {
+      res.status(400).json({ error: "No file uploaded" });
+      return;
+    }
+    const fileUrl = `/uploads/${file.filename}`;
+    const attachment = await attachmentService.createAttachment({
+      fileName: file.originalname,
+      fileUrl,
+      fileSize: file.size,
+      mimeType: file.mimetype,
+      uploadedById: userId,
+      taskId: taskId || undefined,
+      commentId: commentId || undefined,
+    });
+    res.status(201).json({ attachment });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to upload file";
+    res.status(400).json({ error: message });
+  }
+}
 
 export async function createAttachment(req: AuthRequest, res: Response): Promise<void> {
   try {

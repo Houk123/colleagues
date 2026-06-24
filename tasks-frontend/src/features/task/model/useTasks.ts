@@ -9,6 +9,10 @@ import {
   deleteTask,
   fetchComments,
   createComment,
+  fetchTags,
+  createTag,
+  addTagToTask,
+  removeTagFromTask,
   type CreateTaskInput,
   type UpdateTaskInput,
   type Task,
@@ -100,6 +104,46 @@ export function useCreateComment() {
       queryClient.invalidateQueries({ queryKey: ["comments", variables.taskId] });
       queryClient.invalidateQueries({ queryKey: ["task", variables.taskId] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+  });
+}
+
+export function useTags(portalId: string) {
+  return useQuery({
+    queryKey: ["tags", portalId],
+    queryFn: () => fetchTags(portalId),
+    enabled: !!portalId,
+  });
+}
+
+export function useCreateTag() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { portalId: string; name: string; color?: string }) => createTag(input),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["tags", variables.portalId] });
+    },
+  });
+}
+
+export function useAddTagToTask() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ taskId, tagId }: { taskId: string; tagId: string }) => addTagToTask(taskId, tagId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["task"] });
+    },
+  });
+}
+
+export function useRemoveTagFromTask() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ taskId, tagId }: { taskId: string; tagId: string }) => removeTagFromTask(taskId, tagId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["task"] });
     },
   });
 }

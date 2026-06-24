@@ -4,63 +4,67 @@ import {
   Box,
   Button,
   Card,
+  Grid,
   Heading,
   Stack,
   Text,
   Dialog,
   Portal,
 } from "@chakra-ui/react";
-import { useLogout } from "@/features/auth/model/useAuth.js";
 import { usePortals } from "@/features/portal/model/usePortals.js";
 import CreatePortalForm from "@/features/portal/ui/CreatePortalForm.js";
 
 export default function PortalsPage() {
   const { data: portals, isLoading, error } = usePortals();
-  const logout = useLogout();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
   return (
     <Box p="6">
-      <Heading mb="4">Порталы</Heading>
-      <Stack direction="row" gap="4" mb="6" wrap="wrap">
-        <Button onClick={() => setOpen(true)} colorScheme="blue">
-          Создать портал
-        </Button>
-        <Button onClick={() => navigate("/join-portal")} colorScheme="teal" variant="outline">
-          Вступить в портал
-        </Button>
-        <Button onClick={() => navigate("/portal-requests")} colorScheme="purple" variant="outline">
-          Запросы на вступление
-        </Button>
-        <Button onClick={logout} colorScheme="red" variant="outline">
-          Выйти
-        </Button>
+      <Stack direction="row" justify="space-between" align="center" mb="8">
+        <Heading>Ваши порталы</Heading>
+        <Stack direction="row" gap="3">
+          <Button onClick={() => setOpen(true)} colorPalette="brand">
+            + Создать портал
+          </Button>
+          <Button onClick={() => navigate("/join-portal")} variant="outline" colorPalette="brand">
+            Вступить в портал
+          </Button>
+          <Button onClick={() => navigate("/portal-requests")} variant="outline">
+            Запросы
+          </Button>
+        </Stack>
       </Stack>
 
-      {isLoading && <Text>Загрузка...</Text>}
+      {isLoading && <Text color="gray.500">Загрузка...</Text>}
       {error && <Text color="red.500">Ошибка загрузки порталов</Text>}
 
-      <Stack gap="4">
+      <Grid templateColumns="repeat(auto-fill, minmax(300px, 1fr))" gap="4">
         {portals?.map((portal) => (
           <Card.Root
             key={portal.id}
-            p="4"
+            p="5"
             cursor="pointer"
-            _hover={{ bg: "gray.50" }}
+            _hover={{ borderColor: "brand.400", boxShadow: "md", transform: "translateY(-2px)" }}
+            transition="all 0.2s"
+            borderTop="3px solid"
+            borderColor="brand.500"
             onClick={() => navigate(`/portals/${portal.slug}`)}
           >
             <Card.Body>
-              <Heading size="md">{portal.name}</Heading>
-              <Text color="gray.500">/{portal.slug}</Text>
-              {portal.description && <Text mt="2">{portal.description}</Text>}
+              <Heading size="md" color="brand.700">{portal.name}</Heading>
+              <Text color="gray.500" fontSize="sm" mt="1">/{portal.slug}</Text>
+              {portal.description && <Text mt="3" color="gray.600" fontSize="sm">{portal.description}</Text>}
             </Card.Body>
           </Card.Root>
         ))}
-        {!isLoading && portals?.length === 0 && (
-          <Text color="gray.500">У вас пока нет порталов. Создайте первый.</Text>
-        )}
-      </Stack>
+      </Grid>
+      {!isLoading && portals?.length === 0 && (
+        <Box textAlign="center" py="20">
+          <Text color="gray.500" fontSize="lg">У вас пока нет порталов</Text>
+          <Text color="gray.500" fontSize="sm" mt="2">Создайте первый или вступите в существующий</Text>
+        </Box>
+      )}
 
       <Dialog.Root open={open} onOpenChange={(e) => setOpen(e.open)}>
         <Portal>

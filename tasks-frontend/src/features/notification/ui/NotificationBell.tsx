@@ -50,7 +50,7 @@ export default function NotificationBell() {
       <Button variant="ghost" onClick={() => setOpen(!open)} size="sm">
         🔔
         {!!unreadCount && (
-          <Badge colorScheme="red" borderRadius="full" position="absolute" top="0" right="0" fontSize="xs">
+          <Badge colorPalette="red" borderRadius="full" position="absolute" top="0" right="0" fontSize="xs">
             {unreadCount > 9 ? "9+" : unreadCount}
           </Badge>
         )}

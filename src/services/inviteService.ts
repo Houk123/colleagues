@@ -50,11 +50,8 @@ export async function acceptInvite(token: string, userId: string) {
       data: { status: "accepted" },
     });
 
-    // Add user to portal roles
-    await tx.userRoles.upsert({
-      where: { userId_portalId: { userId, portalId: invite.portalId } },
-      update: { roleId: invite.roleId },
-      create: { userId, portalId: invite.portalId, roleId: invite.roleId },
+    await tx.userRole.create({
+      data: { userId, roleId: invite.roleId, scope: "portal", contextId: invite.portalId },
     });
 
     if (invite.projectId) {

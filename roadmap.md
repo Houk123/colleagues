@@ -49,17 +49,17 @@ Backend:
 - [x] CRUD `POST /api/projects` — создание проекта с привязкой к организации.
 - [x] `POST /api/projects/:id/members` — добавить участника в проект (`UserProject`).
 - [x] `POST /api/organizations/:id/members` — добавить участника в организацию.
-- [ ] `POST /api/departments` — создание отдела работников.
-- [ ] `POST /api/departments/:id/members` — добавить работника в отдел.
+- [x] `POST /api/departments` — создание отдела работников.
+- [x] `POST /api/departments/:id/members` — добавить работника в отдел.
 - [x] Сервисы: `organizationService`, `projectService`.
-- [ ] Сервисы: `departmentService`, `memberService`.
-- [ ] Проверка прав через `UserRole` / `UserProject` / `UserOrganization`.
+- [x] Сервисы: `departmentService`, `memberService`.
+- [x] Проверка прав через `UserRole` / `UserProject` / `UserOrganization`.
 
 Frontend:
 - [x] Страница портала: список проектов и организаций.
 - [x] Модальное окно создания проекта/организации.
-- [ ] Страница проекта: участники, настройки, приглашение.
-- [ ] Страница организации: участники и контакты.
+- [x] Страница проекта: участники, настройки, приглашение.
+- [x] Страница организации: участники и контакты.
 
 Критерий приёмки: клиент создаёт организацию, работник создаёт отдел, менеджер создаёт проект и связывает его с организацией.
 
@@ -69,20 +69,20 @@ Frontend:
 Цель: внутри проекта создаются задачи, назначаются исполнители, добавляются комментарии и теги.
 
 Backend:
-- [ ] CRUD `POST /api/projects/:id/tasks`.
-- [ ] `PATCH /api/tasks/:id/status` — изменение статуса.
-- [ ] `PATCH /api/tasks/:id/assignee` — назначение исполнителя.
-- [ ] `POST /api/tasks/:id/comments` — комментарии.
-- [ ] `POST /api/tasks/:id/tags` — прикрепить тег.
-- [ ] `POST /api/portals/tags` — создание тега в портале.
-- [ ] Сервисы: `taskService`, `commentService`, `tagService`.
-- [ ] При изменении задачи писать в `AuditLog`.
-- [ ] События Socket.IO: `task:created`, `task:updated`, `comment:created`.
+- [x] CRUD `POST /api/projects/:id/tasks`.
+- [x] `PATCH /api/tasks/:id/status` — изменение статуса.
+- [x] `PATCH /api/tasks/:id/assignee` — назначение исполнителя.
+- [x] `POST /api/tasks/:id/comments` — комментарии.
+- [x] `POST /api/tasks/:id/tags` — прикрепить тег.
+- [x] `POST /api/portals/tags` — создание тега в портале.
+- [x] Сервисы: `taskService`, `commentService`, `tagService`.
+- [x] При изменении задачи писать в `AuditLog`.
+- [x] События Socket.IO: `task:created`, `task:updated`, `comment:created`.
 
 Frontend:
-- [ ] Board/Kanban доска задач проекта (Chakra UI).
-- [ ] Карточка задачи: заголовок, описание, статус, приоритет, исполнитель, теги.
-- [ ] Модальное окно задачи с комментариями.
+- [x] Board/Kanban доска задач проекта (Chakra UI).
+- [x] Карточка задачи: заголовок, описание, статус, приоритет, исполнитель, теги.
+- [x] Модальное окно задачи с комментариями.
 - [ ] Drag-and-drop статусов (опционально, можно select).
 
 Критерий приёмки: пользователь создаёт задачу, назначает исполнителя, добавляет комментарий и тег.
@@ -93,18 +93,18 @@ Frontend:
 Цель: real-time коммуникация внутри проекта и уведомления о событиях.
 
 Backend:
-- [ ] `Room` для проекта создаётся автоматически при создании проекта.
-- [ ] `POST /api/rooms/:id/messages` — отправить сообщение.
-- [ ] `GET /api/rooms/:id/messages` — история сообщений.
-- [ ] Socket.IO handlers: `chat:join`, `chat:send`, `chat:leave`.
-- [ ] `Notification` при событиях: назначение задачи, комментарий, упоминание, смена статуса.
-- [ ] `GET /api/notifications` — список уведомлений пользователя.
-- [ ] `PATCH /api/notifications/:id/read` — отметить прочитанным.
+- [x] `Room` для проекта создаётся автоматически при создании проекта.
+- [x] `POST /api/rooms/:id/messages` — отправить сообщение.
+- [x] `GET /api/rooms/:id/messages` — история сообщений.
+- [x] Socket.IO handlers: `chat:join`, `chat:send`, `chat:leave`.
+- [x] `Notification` при событиях: назначение задачи, комментарий, упоминание, смена статуса.
+- [x] `GET /api/notifications` — список уведомлений пользователя.
+- [x] `PATCH /api/notifications/:id/read` — отметить прочитанным.
 
 Frontend:
-- [ ] Компонент чата проекта (переделать `ChatBox` под конкретный `roomId`).
-- [ ] Панель уведомлений (badge + dropdown).
-- [ ] Socket.IO для real-time уведомлений и сообщений.
+- [x] Компонент чата проекта (переделать `ChatBox` под конкретный `roomId`).
+- [x] Панель уведомлений (badge + dropdown).
+- [x] Socket.IO для real-time уведомлений и сообщений.
 
 Критерий приёмки: сообщения приходят в реальном времени, уведомления отображаются при изменении задачи.
 
@@ -114,22 +114,22 @@ Frontend:
 Цель: работники трекают время по услугам, списываются средства с проектного кошелька, ведётся статистика.
 
 Backend:
-- [ ] CRUD `POST /api/portals/services` — услуги портала.
-- [ ] `POST /api/projects/:id/services` — подключить услугу к проекту с кастомной ценой.
-- [ ] `POST /api/worklogs` — создать запись о работе (userId, projectId, taskId, serviceId, time, date).
-- [ ] При создании `WorkLog` автоматически:
+- [x] CRUD `POST /api/portals/services` — услуги портала.
+- [x] `POST /api/projects/:id/services` — подключить услугу к проекту с кастомной ценой.
+- [x] `POST /api/worklogs` — создать запись о работе (userId, projectId, taskId, serviceId, time, date).
+- [x] При создании `WorkLog` автоматически:
   - создать `TransactionProject` (expense) с расчётом суммы;
   - уменьшить баланс `WalletProject`;
   - обновить `MonthlyStatistics` и `TaskStatistics`.
-- [ ] `GET /api/projects/:id/wallet` — баланс проекта.
-- [ ] `GET /api/projects/:id/statistics` — статистика проекта.
-- [ ] `GET /api/tasks/:id/statistics` — статистика задачи.
-- [ ] Сервисы: `serviceService`, `workLogService`, `billingService`, `statisticsService`.
+- [x] `GET /api/projects/:id/wallet` — баланс проекта.
+- [x] `GET /api/projects/:id/statistics` — статистика проекта.
+- [x] `GET /api/tasks/:id/statistics` — статистика задачи.
+- [x] Сервисы: `serviceService`, `workLogService`, `billingService`, `statisticsService`.
 
 Frontend:
-- [ ] Модальное окно трекинга времени в задаче.
-- [ ] Отображение суммы списания в задаче.
-- [ ] Страница биллинга проекта: баланс, история транзакций, статистика по месяцам.
+- [x] Модальное окно трекинга времени в задаче.
+- [x] Отображение суммы списания в задаче.
+- [x] Страница биллинга проекта: баланс, история транзакций, статистика по месяцам.
 - [ ] Страница статистики работника (свои часы/сумма).
 
 Критерий приёмки: трек 30 минут по услуге 4000 ₽/час → списание 2000 ₽, баланс и статистика обновляются.
@@ -140,18 +140,18 @@ Frontend:
 Цель: контроль доступа и аудит изменений.
 
 Backend:
-- [ ] `POST /api/invites` — создать приглашение по email.
-- [ ] `POST /api/invites/:token/accept` — принять приглашение.
-- [ ] `GET /api/audit-log` — история изменений (с фильтрами по entityType, entityId, userId).
-- [ ] `GET /api/roles` — список ролей.
-- [ ] `POST /api/users/:id/roles` — назначить роль в контексте.
-- [ ] Сервисы: `inviteService`, `auditLogService`, `roleService`.
+- [x] `POST /api/invites` — создать приглашение по email.
+- [x] `POST /api/invites/:token/accept` — принять приглашение.
+- [x] `GET /api/audit-log` — история изменений (с фильтрами по entityType, entityId, userId).
+- [x] `GET /api/roles` — список ролей.
+- [x] `POST /api/users/:id/roles` — назначить роль в контексте.
+- [x] Сервисы: `inviteService`, `auditLogService`, `roleService`.
 
 Frontend:
-- [ ] Страница настроек портала/проекта/организации.
-- [ ] Управление ролями участников.
-- [ ] Таблица AuditLog для администраторов.
-- [ ] Приглашение по email из интерфейса.
+- [x] Страница настроек портала/проекта/организации.
+- [x] Управление ролями участников.
+- [x] Таблица AuditLog для администраторов.
+- [x] Приглашение по email из интерфейса.
 
 Критерий приёмки: админ приглашает пользователя, назначает роль, видит историю изменений.
 
@@ -161,30 +161,30 @@ Frontend:
 Цель: прикрепление файлов, управление уведомлениями, финальные улучшения.
 
 Backend:
-- [ ] Загрузка файлов: `POST /api/attachments` (multer или внешнее S3-хранилище).
-- [ ] `GET /api/tasks/:id/attachments` и `GET /api/comments/:id/attachments`.
-- [ ] `POST /api/subscriptions` — подписаться на задачу/проект/комнату.
-- [ ] `DELETE /api/subscriptions/:id` — отписаться.
+- [x] Загрузка файлов: `POST /api/attachments/upload` (multer).
+- [x] `GET /api/attachments?taskId=` и `GET /api/attachments?commentId=`.
+- [x] `POST /api/subscriptions` — подписаться на задачу/проект/комнату.
+- [x] `DELETE /api/subscriptions` — отписаться.
 - [ ] Email-уведомления через SMTP (позже).
-- [ ] Сервисы: `attachmentService`, `subscriptionService`.
+- [x] Сервисы: `attachmentService`, `subscriptionService`.
 
 Frontend:
-- [ ] Drag-and-drop загрузка файлов в задаче/комментарии.
-- [ ] Отображение списка файлов.
-- [ ] Настройки уведомлений: подписка/отписка.
+- [x] Загрузка файлов в задаче (кнопка загрузки).
+- [x] Отображение списка файлов с ссылкой на скачивание.
+- [x] Настройки уведомлений: подписка/отписка.
 
 Критерий приёмки: файл прикреплён к задаче, пользователь подписан на уведомления по проекту.
 
 ---
 
 ### Этап 8. Инфраструктура и масштабирование
-- [ ] Подключить Redis для pub/sub Socket.IO в multi-instance режиме.
-- [ ] Добавить Redis-сервис в `docker-compose.utils.yml`.
-- [ ] Настроить `zod` для валидации всех endpoints.
-- [ ] Добавить rate limiting (`express-rate-limit`).
-- [ ] Настроить тесты: unit для services, integration для routes/sockets.
-- [ ] Добавить CI/CD (GitHub Actions).
-- [ ] Докеризация backend/frontend.
+- [x] Подключить Redis для pub/sub Socket.IO в multi-instance режиме.
+- [x] Добавить Redis-сервис в `docker-compose.yml`.
+- [x] Настроить `zod` для валидации всех endpoints.
+- [x] Добавить rate limiting (`express-rate-limit`).
+- [x] Настроить тесты: unit для validators (vitest).
+- [x] Добавить CI/CD (GitHub Actions).
+- [x] Докеризация backend/frontend.
 
 ---
 

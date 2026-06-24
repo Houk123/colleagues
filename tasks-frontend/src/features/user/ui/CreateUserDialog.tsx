@@ -225,7 +225,7 @@ export default function CreateUserDialog({
                           <Button
                             size="xs"
                             variant="outline"
-                            colorScheme="red"
+                            colorPalette="red"
                             onClick={() => setProjectAssignments(projectAssignments.filter((_, i) => i !== idx))}
                           >
                             Убрать
@@ -264,7 +264,7 @@ export default function CreateUserDialog({
                       </Box>
                       <Button
                         size="sm"
-                        colorScheme="blue"
+                        colorPalette="brand"
                         disabled={!selectedProjectId || !selectedProjectRoleId}
                         onClick={() => {
                           setProjectAssignments([
@@ -281,7 +281,7 @@ export default function CreateUserDialog({
                   </Stack>
                 </Box>
 
-                <Button colorScheme="blue" loading={createUser.isPending} onClick={handleSubmit}>
+                <Button colorPalette="brand" loading={createUser.isPending} onClick={handleSubmit}>
                   Создать пользователя
                 </Button>
               </Stack>

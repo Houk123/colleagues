@@ -19,8 +19,8 @@ export async function createAuditLog(input: CreateAuditLogInput) {
       entityId: input.entityId,
       action: input.action as any,
       userId: input.userId,
-      oldValue: input.oldValue ?? null,
-      newValue: input.newValue ?? null,
+      oldValue: (input.oldValue ?? undefined) as any,
+      newValue: (input.newValue ?? undefined) as any,
     },
   });
 }

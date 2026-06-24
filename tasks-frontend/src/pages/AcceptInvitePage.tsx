@@ -26,13 +26,13 @@ export default function AcceptInvitePage() {
         {done && (
           <>
             <Text color="green.600">Приглашение принято! Вы добавлены к порталу/проекту.</Text>
-            <Button onClick={() => navigate("/")} colorScheme="blue">На главную</Button>
+            <Button onClick={() => navigate("/")} colorPalette="brand">На главную</Button>
           </>
         )}
         {error && (
           <>
             <Text color="red.500">{error}</Text>
-            <Button onClick={() => navigate("/")} colorScheme="blue">На главную</Button>
+            <Button onClick={() => navigate("/")} colorPalette="brand">На главную</Button>
           </>
         )}
       </Stack>

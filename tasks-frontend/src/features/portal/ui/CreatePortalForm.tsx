@@ -49,7 +49,7 @@ export default function CreatePortalForm({ onSuccess }: CreatePortalFormProps) {
         <Box>
           <Input placeholder="Описание (необязательно)" {...register("description")} />
         </Box>
-        <Button type="submit" loading={isSubmitting || createPortal.isPending} colorScheme="blue">
+        <Button type="submit" loading={isSubmitting || createPortal.isPending} colorPalette="brand">
           Создать портал
         </Button>
         {createPortal.isError && (

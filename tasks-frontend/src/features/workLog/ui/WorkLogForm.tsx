@@ -89,7 +89,7 @@ export default function WorkLogForm({ projectId, taskId, serviceOptions, onSucce
         </Stack>
         {errors.serviceId && <Text color="red.500" fontSize="xs">{errors.serviceId.message}</Text>}
         <Input placeholder="Описание работы" {...register("description")} />
-        <Button type="submit" loading={isSubmitting || createWorkLog.isPending} size="sm" colorScheme="green">
+        <Button type="submit" loading={isSubmitting || createWorkLog.isPending} size="sm" colorPalette="green">
           Записать время
         </Button>
       </Stack>

@@ -56,7 +56,7 @@ export default function OrganizationPage() {
 
       <Button
         onClick={() => setProjectOpen(true)}
-        colorScheme="blue"
+        colorPalette="brand"
         mb="6"
         disabled={!organization?.id}
       >
@@ -72,7 +72,7 @@ export default function OrganizationPage() {
                 <Text>
                   {ou.user.name || ou.user.email} <Text as="span" color="gray.500">({ou.user.email})</Text>
                 </Text>
-                <Badge colorScheme={ou.role === "owner" ? "green" : "blue"}>{ou.role}</Badge>
+                <Badge colorPalette={ou.role === "owner" ? "green" : "blue"}>{ou.role}</Badge>
               </Stack>
             ))}
           </Stack>
@@ -97,7 +97,7 @@ export default function OrganizationPage() {
             <Card.Body>
               <Heading size="md" mb="1">{project.name}</Heading>
               <Badge
-                colorScheme={
+                colorPalette={
                   project.status === "active"
                     ? "green"
                     : project.status === "closed"

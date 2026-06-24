@@ -1,0 +1,9 @@
+node_modules
+dist
+build
+uploads
+.git
+.env
+*.log
+tasks-frontend/node_modules
+tasks-frontend/dist

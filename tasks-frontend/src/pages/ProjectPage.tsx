@@ -145,7 +145,7 @@ export default function ProjectPage() {
       <Stack direction="row" justify="space-between" align="flex-start" mb="6">
         <Box>
           <Heading mb="1">{project?.name ?? "Загрузка..."}</Heading>
-          <Badge colorScheme={project?.status === "active" ? "green" : "gray"} mb="2">
+          <Badge colorPalette={project?.status === "active" ? "green" : "gray"} mb="2">
             {project?.status}
           </Badge>
         </Box>
@@ -171,7 +171,7 @@ export default function ProjectPage() {
         <Card.Body>
           <Stack direction="row" justify="space-between" align="center" mb="3">
             <Heading size="md">Участники проекта</Heading>
-            <Button size="sm" colorScheme="green" onClick={() => setMemberOpen(true)}>
+            <Button size="sm" colorPalette="green" onClick={() => setMemberOpen(true)}>
               + Добавить участника
             </Button>
           </Stack>
@@ -181,7 +181,7 @@ export default function ProjectPage() {
                 <Text>
                   {up.user.name || up.user.email} <Text as="span" color="gray.500">({up.user.email})</Text>
                 </Text>
-                <Badge colorScheme="blue">{up.role.name}</Badge>
+                <Badge colorPalette="brand">{up.role.name}</Badge>
               </Stack>
             ))}
           </Stack>
@@ -200,19 +200,21 @@ export default function ProjectPage() {
 
         <Tabs.Content value="tasks">
           <Stack gap="4" mt="4">
-            <Button onClick={() => setTaskOpen(true)} colorScheme="blue" w="fit-content">
+            <Button onClick={() => setTaskOpen(true)} colorPalette="brand" w="fit-content">
               + Создать задачу
             </Button>
             <KanbanBoard
               tasks={tasks ?? []}
-              onTaskClick={(taskId) => { setSelectedTaskId(taskId); setTaskDetailOpen(true); }}
+              onTaskClick={(taskId) => {
+                navigate(`/portals/${portalSlug}/organizations/${orgSlug}/projects/${projectSlug}/tasks/${taskId}`);
+              }}
             />
           </Stack>
         </Tabs.Content>
 
         <Tabs.Content value="phases">
           <Stack gap="4" mt="4">
-            <Button onClick={() => setPhaseOpen(true)} colorScheme="blue" w="fit-content">
+            <Button onClick={() => setPhaseOpen(true)} colorPalette="brand" w="fit-content">
               + Добавить фазу
             </Button>
             <Grid templateColumns="repeat(auto-fill, minmax(300px, 1fr))" gap="4">
@@ -221,7 +223,7 @@ export default function ProjectPage() {
                   <Card.Body>
                     <Stack direction="row" justify="space-between" align="center" mb="2">
                       <Heading size="md">{phase.name}</Heading>
-                      {phase.isCurrent && <Badge colorScheme="blue">Текущая</Badge>}
+                      {phase.isCurrent && <Badge colorPalette="brand">Текущая</Badge>}
                     </Stack>
                     <Text fontSize="sm" color="gray.500">
                       {phase.pricingMode === "fixed_budget"
@@ -244,10 +246,10 @@ export default function ProjectPage() {
         <Tabs.Content value="services">
           <Stack gap="4" mt="4">
             <Stack direction="row" gap="2">
-              <Button onClick={() => setServiceOpen(true)} colorScheme="blue" w="fit-content">
+              <Button onClick={() => setServiceOpen(true)} colorPalette="brand" w="fit-content">
                 + Подключить услугу
               </Button>
-              <Button onClick={() => setPortalServiceOpen(true)} colorScheme="gray" variant="outline" w="fit-content">
+              <Button onClick={() => setPortalServiceOpen(true)} colorPalette="gray" variant="outline" w="fit-content">
                 + Новая услуга портала
               </Button>
             </Stack>
@@ -269,7 +271,7 @@ export default function ProjectPage() {
                         Скидка: {ps.discountPercent}%
                       </Text>
                     )}
-                    {!ps.enabled && <Badge colorScheme="gray" mt="2">Отключена</Badge>}
+                    {!ps.enabled && <Badge colorPalette="gray" mt="2">Отключена</Badge>}
                   </Card.Body>
                 </Card.Root>
               ))}
@@ -280,7 +282,7 @@ export default function ProjectPage() {
 
         <Tabs.Content value="transactions">
           <Stack gap="4" mt="4">
-            <Button onClick={() => setDepositOpen(true)} colorScheme="green" w="fit-content">
+            <Button onClick={() => setDepositOpen(true)} colorPalette="green" w="fit-content">
               + Пополнить кошелёк
             </Button>
             <Stack gap="2">
@@ -289,7 +291,7 @@ export default function ProjectPage() {
                   <Card.Body>
                     <Stack direction="row" justify="space-between">
                       <Text>
-                        <Badge colorScheme={t.type === "deposit" ? "green" : t.type === "charge" ? "red" : "gray"}>
+                        <Badge colorPalette={t.type === "deposit" ? "green" : t.type === "charge" ? "red" : "gray"}>
                           {t.type}
                         </Badge>
                         {t.description && <Text as="span" ml="2" color="gray.600">{t.description}</Text>}
@@ -452,7 +454,7 @@ export default function ProjectPage() {
                     </NativeSelect.Root>
                   </Box>
                   <Button
-                    colorScheme="green"
+                    colorPalette="green"
                     loading={addMember.isPending}
                     disabled={!memberUserId || !memberRoleId}
                     onClick={async () => {
@@ -520,7 +522,7 @@ export default function ProjectPage() {
                         ))}
                       </NativeSelect.Field>
                     </NativeSelect.Root>
-                    <Button type="submit" loading={createTask.isPending} colorScheme="blue">Создать</Button>
+                    <Button type="submit" loading={createTask.isPending} colorPalette="brand">Создать</Button>
                   </Stack>
                 </form>
               </Dialog.Body>
@@ -546,8 +548,8 @@ export default function ProjectPage() {
                     <Stack gap="4">
                       <Text color="gray.600">{task.description || "Нет описания"}</Text>
                       <Stack direction="row" gap="2" wrap="wrap">
-                        <Badge colorScheme={task.status === "done" ? "green" : task.status === "in_progress" ? "blue" : "gray"}>{task.status}</Badge>
-                        <Badge colorScheme={task.priority === "critical" ? "red" : task.priority === "high" ? "orange" : "gray"}>{task.priority}</Badge>
+                        <Badge colorPalette={task.status === "done" ? "green" : task.status === "in_progress" ? "blue" : "gray"}>{task.status}</Badge>
+                        <Badge colorPalette={task.priority === "critical" ? "red" : task.priority === "high" ? "orange" : "gray"}>{task.priority}</Badge>
                         {task.assignee && <Text fontSize="sm">Исполнитель: {task.assignee.name || task.assignee.email}</Text>}
                       </Stack>
                       <NativeSelect.Root>
@@ -609,7 +611,7 @@ export default function ProjectPage() {
                       >
                         <Stack direction="row" gap="2">
                           <Input name="commentText" placeholder="Написать комментарий..." required />
-                          <Button type="submit" loading={createComment.isPending} size="sm" colorScheme="blue">Отправить</Button>
+                          <Button type="submit" loading={createComment.isPending} size="sm" colorPalette="brand">Отправить</Button>
                         </Stack>
                       </form>
                       <Heading size="sm">Файлы</Heading>
@@ -646,7 +648,7 @@ export default function ProjectPage() {
                             <Input placeholder="Название файла" value={fileName} onChange={(e) => setFileName(e.target.value)} required />
                             <Input placeholder="URL файла" value={fileUrl} onChange={(e) => setFileUrl(e.target.value)} required />
                           </Stack>
-                          <Button type="submit" loading={createAttachment.isPending} size="sm" colorScheme="blue">Прикрепить файл</Button>
+                          <Button type="submit" loading={createAttachment.isPending} size="sm" colorPalette="brand">Прикрепить файл</Button>
                         </Stack>
                       </form>
                     </Stack>
@@ -724,7 +726,7 @@ function PhaseForm({
             )}
           </>
         )}
-        <Button type="submit" loading={createPhase.isPending} colorScheme="blue">Создать</Button>
+        <Button type="submit" loading={createPhase.isPending} colorPalette="brand">Создать</Button>
       </Stack>
     </form>
   );
@@ -771,7 +773,7 @@ function AddServiceForm({
         </NativeSelect.Root>
         <Input placeholder="Цена для проекта (необязательно)" type="number" value={customPrice} onChange={(e) => setCustomPrice(e.target.value)} />
         <Input placeholder="Скидка % для проекта (необязательно)" type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} />
-        <Button type="submit" loading={addProjectService.isPending} colorScheme="blue">Подключить</Button>
+        <Button type="submit" loading={addProjectService.isPending} colorPalette="brand">Подключить</Button>
       </Stack>
     </form>
   );
@@ -805,7 +807,7 @@ function CreatePortalServiceForm({
         <Input placeholder="Название услуги" value={name} onChange={(e) => setName(e.target.value)} required />
         <Input placeholder="Описание" value={description} onChange={(e) => setDescription(e.target.value)} />
         <Input placeholder="Цена за час" type="number" value={price} onChange={(e) => setPrice(e.target.value)} required />
-        <Button type="submit" loading={createPortalService.isPending} colorScheme="blue">Создать</Button>
+        <Button type="submit" loading={createPortalService.isPending} colorPalette="brand">Создать</Button>
       </Stack>
     </form>
   );
@@ -837,7 +839,7 @@ function DepositForm({
       <Stack gap="4">
         <Input placeholder="Сумма" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} required />
         <Input placeholder="Описание" value={description} onChange={(e) => setDescription(e.target.value)} />
-        <Button type="submit" loading={createTransaction.isPending} colorScheme="green">Пополнить</Button>
+        <Button type="submit" loading={createTransaction.isPending} colorPalette="green">Пополнить</Button>
       </Stack>
     </form>
   );
@@ -878,7 +880,7 @@ function KanbanBoard({
                     <Text fontWeight="medium" mb="1">{t.title}</Text>
                     <Stack direction="row" gap="1" mb="1">
                       {t.taskTags.map((tt) => (
-                        <Badge key={tt.tag.name} size="sm" colorScheme={tt.tag.color ? undefined : "blue"} bg={tt.tag.color ?? undefined}>
+                        <Badge key={tt.tag.name} size="sm" colorPalette={tt.tag.color ? undefined : "blue"} bg={tt.tag.color ?? undefined}>
                           {tt.tag.name}
                         </Badge>
                       ))}
@@ -890,7 +892,7 @@ function KanbanBoard({
                 </Card.Root>
               ))}
             {tasks.filter((t) => t.status === col.key).length === 0 && (
-              <Text color="gray.400" fontSize="sm">Нет задач</Text>
+              <Text color="gray.500" fontSize="sm">Нет задач</Text>
             )}
           </Stack>
         </Stack>

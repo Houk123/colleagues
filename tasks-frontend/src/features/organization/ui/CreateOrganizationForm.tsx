@@ -50,7 +50,7 @@ export default function CreateOrganizationForm({ portalId, onSuccess }: CreateOr
         <Box>
           <Input placeholder="Описание (необязательно)" {...register("description")} />
         </Box>
-        <Button type="submit" loading={isSubmitting || createOrganization.isPending} colorScheme="blue">
+        <Button type="submit" loading={isSubmitting || createOrganization.isPending} colorPalette="brand">
           Создать организацию
         </Button>
         {createOrganization.isError && (

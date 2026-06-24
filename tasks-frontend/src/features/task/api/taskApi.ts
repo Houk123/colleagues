@@ -124,3 +124,28 @@ export async function createComment(taskId: string, text: string): Promise<Comme
   const { data } = await api.post<{ comment: Comment }>(`/tasks/${taskId}/comments`, { text });
   return data.comment;
 }
+
+export interface Tag {
+  id: string;
+  portalId: string;
+  name: string;
+  color: string | null;
+}
+
+export async function fetchTags(portalId: string): Promise<Tag[]> {
+  const { data } = await api.get<{ tags: Tag[] }>("/tags", { params: { portalId } });
+  return data.tags;
+}
+
+export async function createTag(input: { portalId: string; name: string; color?: string }): Promise<Tag> {
+  const { data } = await api.post<{ tag: Tag }>("/tags", input);
+  return data.tag;
+}
+
+export async function addTagToTask(taskId: string, tagId: string): Promise<void> {
+  await api.post(`/tasks/${taskId}/tags`, { tagId });
+}
+
+export async function removeTagFromTask(taskId: string, tagId: string): Promise<void> {
+  await api.delete(`/tasks/${taskId}/tags`, { data: { tagId } });
+}

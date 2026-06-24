@@ -117,13 +117,13 @@ export default function PortalRequestsPage() {
                         {req.message}
                       </Text>
                     )}
-                    <Badge colorScheme="yellow" mt="2">{req.status}</Badge>
+                    <Badge colorPalette="yellow" mt="2">{req.status}</Badge>
                   </Box>
                   <Stack direction="row" gap="2">
-                    <Button colorScheme="green" onClick={() => setSelected(req.id)}>
+                    <Button colorPalette="green" onClick={() => setSelected(req.id)}>
                       Принять
                     </Button>
-                    <Button colorScheme="red" variant="outline" onClick={() => handleReject(req.id)}>
+                    <Button colorPalette="red" variant="outline" onClick={() => handleReject(req.id)}>
                       Отклонить
                     </Button>
                   </Stack>
@@ -240,7 +240,7 @@ export default function PortalRequestsPage() {
                     </Box>
                   )}
 
-                  <Button colorScheme="green" loading={accept.isPending} onClick={handleAccept}>
+                  <Button colorPalette="green" loading={accept.isPending} onClick={handleAccept}>
                     Принять и назначить
                   </Button>
                 </Stack>

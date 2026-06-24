@@ -148,3 +148,48 @@ export async function listCreatableRoles(req: AuthRequest, res: Response): Promi
     res.status(400).json({ error: message });
   }
 }
+
+export async function assignRole(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const targetUserId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const { roleId, scope, contextId } = req.body;
+    if (!roleId || !scope || !contextId) {
+      res.status(400).json({ error: "roleId, scope and contextId are required" });
+      return;
+    }
+    const existing = await prisma.userRole.findFirst({
+      where: { userId: targetUserId, scope, contextId },
+    });
+    if (existing) {
+      const updated = await prisma.userRole.update({
+        where: { id: existing.id },
+        data: { roleId },
+        include: { role: true },
+      });
+      res.status(200).json({ userRole: updated });
+      return;
+    }
+    const userRole = await prisma.userRole.create({
+      data: { userId: targetUserId, roleId, scope, contextId },
+      include: { role: true },
+    });
+    res.status(201).json({ userRole });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to assign role";
+    res.status(400).json({ error: message });
+  }
+}
+
+export async function listUserRoles(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const targetUserId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const userRoles = await prisma.userRole.findMany({
+      where: { userId: targetUserId },
+      include: { role: true },
+    });
+    res.status(200).json({ userRoles });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to list user roles";
+    res.status(400).json({ error: message });
+  }
+}

@@ -38,6 +38,15 @@ export interface CommentEventPayload {
   createdAt?: string;
 }
 
+export interface ChatMessagePayload {
+  id: string;
+  roomId: string;
+  userId: string;
+  text: string;
+  createdAt: string;
+  user: { id: string; name: string; email: string; avatar: string | null };
+}
+
 export interface ServerToClientEvents {
   receiveMessage: (message: ChatMessage) => void;
   userConnected: (data: { userId: string }) => void;
@@ -47,6 +56,7 @@ export interface ServerToClientEvents {
   taskUpdated: (payload: TaskEventPayload) => void;
   taskDeleted: (payload: { id: string; projectId: string }) => void;
   commentCreated: (payload: CommentEventPayload) => void;
+  chatMessage: (payload: ChatMessagePayload) => void;
 }
 
 export interface ClientToServerEvents {

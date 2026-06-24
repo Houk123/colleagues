@@ -20,6 +20,15 @@ interface CommentEventPayload {
   createdAt?: string;
 }
 
+interface ChatMessagePayload {
+  id: string;
+  roomId: string;
+  userId: string;
+  text: string;
+  createdAt: string;
+  user: { id: string; name: string; email: string; avatar: string | null };
+}
+
 interface ServerToClientEvents {
   receiveMessage: (message: ChatMessage) => void;
   notification: (notification: unknown) => void;
@@ -27,6 +36,7 @@ interface ServerToClientEvents {
   taskUpdated: (payload: TaskEventPayload) => void;
   taskDeleted: (payload: { id: string; projectId: string }) => void;
   commentCreated: (payload: CommentEventPayload) => void;
+  chatMessage: (payload: ChatMessagePayload) => void;
 }
 
 interface ClientToServerEvents {

@@ -47,3 +47,26 @@ export async function fetchPortalUsers(portalId: string): Promise<PortalUser[]> 
   });
   return data.users;
 }
+
+export interface UserRole {
+  id: string;
+  userId: string;
+  roleId: string;
+  scope: string;
+  contextId: string;
+  role: { id: string; name: string };
+}
+
+export async function fetchUserRoles(userId: string): Promise<UserRole[]> {
+  const { data } = await api.get<{ userRoles: UserRole[] }>(`/users/${userId}/roles`);
+  return data.userRoles;
+}
+
+export async function assignRole(userId: string, input: {
+  roleId: string;
+  scope: string;
+  contextId: string;
+}): Promise<UserRole> {
+  const { data } = await api.post<{ userRole: UserRole }>(`/users/${userId}/roles`, input);
+  return data.userRole;
+}

@@ -33,3 +33,13 @@ export async function fetchAttachmentsByTask(taskId: string): Promise<Attachment
 export async function deleteAttachment(id: string): Promise<void> {
   await api.delete(`/attachments/${id}`);
 }
+
+export async function uploadFile(file: File, taskId?: string): Promise<Attachment> {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (taskId) formData.append("taskId", taskId);
+  const { data } = await api.post<{ attachment: Attachment }>("/attachments/upload", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data.attachment;
+}

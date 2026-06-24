@@ -59,7 +59,7 @@ export default function JoinPortalPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          <Button type="submit" colorScheme="blue">Найти</Button>
+          <Button type="submit" colorPalette="brand">Найти</Button>
         </Stack>
       </form>
 
@@ -96,7 +96,7 @@ export default function JoinPortalPage() {
                 {myRequest?.status === "pending" ? (
                   <Stack gap="4">
                     <Text color="green.500">Запрос отправлен! Ожидайте подтверждения администратора.</Text>
-                    <Button colorScheme="red" variant="outline" loading={cancelRequest.isPending} onClick={handleCancel}>
+                    <Button colorPalette="red" variant="outline" loading={cancelRequest.isPending} onClick={handleCancel}>
                       Отменить запрос
                     </Button>
                   </Stack>
@@ -109,7 +109,7 @@ export default function JoinPortalPage() {
                       onChange={(e) => setMessage(e.target.value)}
                     />
                     <Button
-                      colorScheme="blue"
+                      colorPalette="brand"
                       loading={createRequest.isPending}
                       onClick={handleRequest}
                     >

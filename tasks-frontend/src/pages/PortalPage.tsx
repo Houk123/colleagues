@@ -70,24 +70,29 @@ export default function PortalPage() {
       <Button variant="ghost" onClick={() => navigate("/")} mb="4">
         ← Назад к порталам
       </Button>
-      <Heading mb="2">
-        {portalLoading ? "Загрузка..." : portal?.name ?? "Портал"}
-      </Heading>
+      <Stack direction="row" justify="space-between" align="center" mb="2">
+        <Heading>
+          {portalLoading ? "Загрузка..." : portal?.name ?? "Портал"}
+        </Heading>
+        <Button variant="outline" size="sm" onClick={() => navigate(`/portals/${portalSlug}/settings`)}>
+          ⚙ Настройки
+        </Button>
+      </Stack>
       <Text color="gray.500" mb="6">
         Клиентские организации. Проекты создаются внутри организации.
       </Text>
 
       <Stack direction="row" gap="3" mb="6" wrap="wrap">
-        <Button onClick={() => setOrgOpen(true)} colorScheme="blue">
+        <Button onClick={() => setOrgOpen(true)} colorPalette="brand">
           + Добавить организацию
         </Button>
-        <Button onClick={() => setDeptOpen(true)} colorScheme="purple">
+        <Button onClick={() => setDeptOpen(true)} colorPalette="purple">
           + Добавить отдел
         </Button>
-        <Button onClick={() => setUserOpen(true)} colorScheme="green">
+        <Button onClick={() => setUserOpen(true)} colorPalette="green">
           + Создать пользователя
         </Button>
-        <Button onClick={() => setInviteOpen(true)} colorScheme="orange">
+        <Button onClick={() => setInviteOpen(true)} colorPalette="orange">
           + Пригласить
         </Button>
       </Stack>
@@ -106,7 +111,7 @@ export default function PortalPage() {
           >
             <Card.Body>
               <Heading size="md" mb="1">{org.name}</Heading>
-              <Badge colorScheme="gray" mb="2">/{org.slug}</Badge>
+              <Badge colorPalette="gray" mb="2">/{org.slug}</Badge>
               {org.description && (
                 <Text color="gray.600" fontSize="sm">{org.description}</Text>
               )}
@@ -172,7 +177,7 @@ export default function PortalPage() {
                       value={deptDesc}
                       onChange={(e) => setDeptDesc(e.target.value)}
                     />
-                    <Button type="submit" loading={createDepartment.isPending} colorScheme="purple">
+                    <Button type="submit" loading={createDepartment.isPending} colorPalette="purple">
                       Создать
                     </Button>
                   </Stack>
@@ -222,7 +227,7 @@ export default function PortalPage() {
                         ))}
                       </NativeSelect.Field>
                     </NativeSelect.Root>
-                    <Button type="submit" loading={createInvite.isPending} colorScheme="orange">
+                    <Button type="submit" loading={createInvite.isPending} colorPalette="orange">
                       Отправить приглашение
                     </Button>
                   </Stack>
@@ -240,7 +245,7 @@ export default function PortalPage() {
             <Card.Body>
               <Stack direction="row" justify="space-between" align="center">
                 <Text fontSize="sm">{inv.email}</Text>
-                <Badge colorScheme={inv.status === "accepted" ? "green" : inv.status === "declined" ? "red" : "yellow"}>
+                <Badge colorPalette={inv.status === "accepted" ? "green" : inv.status === "declined" ? "red" : "yellow"}>
                   {inv.status}
                 </Badge>
               </Stack>

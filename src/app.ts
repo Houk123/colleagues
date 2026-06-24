@@ -12,6 +12,9 @@ import projectRoutes from "./routes/projectRoutes.js";
 import roleRoutes from "./routes/roleRoutes.js";
 import departmentRoutes from "./routes/departmentRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
+import tagRoutes from "./routes/tagRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js";
+import subscriptionRoutes from "./routes/subscriptionRoutes.js";
 import auditLogRoutes from "./routes/auditLogRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import workLogRoutes from "./routes/workLogRoutes.js";
@@ -46,6 +49,7 @@ app.use(rateLimit);
 
 const publicPath = path.resolve(__dirname, "../tasks-frontend/dist");
 app.use(express.static(publicPath));
+app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
 
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
@@ -55,6 +59,9 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/roles", roleRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/tags", tagRoutes);
+app.use("/api/chat", chatRoutes);
+app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/audit-logs", auditLogRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/worklogs", workLogRoutes);
