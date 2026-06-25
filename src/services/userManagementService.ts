@@ -1,13 +1,19 @@
 import { prisma } from "../config/db.js";
 import { hashPassword } from "../lib/password.js";
 
+export interface ClientOrganizationRole {
+  organizationId: string;
+  roleId: string;
+}
+
 export interface CreatePortalUserInput {
   email: string;
   name: string;
   password: string;
   portalId: string;
   roleId: string;
-  organizationId?: string;
+  organizationIds?: string[];
+  clientOrganizationRoles?: ClientOrganizationRole[];
   departmentId?: string;
   projectAssignments?: { projectId: string; roleId: string }[];
 }
@@ -20,11 +26,11 @@ export async function getUserRolesInPortal(userId: string, portalId: string) {
 }
 
 function isPowerRole(name: string): boolean {
-  return ["portal_admin", "portal_manager", "worker_admin", "worker_manager"].includes(name.toLowerCase());
+  return name.toLowerCase().startsWith("employee_");
 }
 
 function isClientRole(name: string): boolean {
-  return name.toLowerCase().includes("client");
+  return name.toLowerCase().startsWith("client_");
 }
 
 export async function canAssignRole(creatorRoles: { role: { name: string } }[], targetRoleName: string): Promise<boolean> {
@@ -84,14 +90,40 @@ export async function createPortalUser(creatorId: string, input: CreatePortalUse
       },
     });
 
-    if (input.organizationId) {
-      await tx.userOrganization.create({
-        data: {
-          userId: user.id,
-          organizationId: input.organizationId,
-          role: "member",
-        },
-      });
+    if (input.clientOrganizationRoles && input.clientOrganizationRoles.length > 0) {
+      for (const assignment of input.clientOrganizationRoles) {
+        const clientRole = await tx.role.findUnique({ where: { id: assignment.roleId } });
+        const orgRole = clientRole?.name.toLowerCase() === "client_owner" ? "owner" : "member";
+        const existingOrgMember = await tx.userOrganization.findUnique({
+          where: { userId_organizationId: { userId: user.id, organizationId: assignment.organizationId } },
+        });
+        if (!existingOrgMember) {
+          await tx.userOrganization.create({
+            data: {
+              userId: user.id,
+              organizationId: assignment.organizationId,
+              role: orgRole,
+            },
+          });
+        }
+      }
+    }
+
+    if (input.organizationIds && input.organizationIds.length > 0) {
+      for (const orgId of input.organizationIds) {
+        const existingOrgMember = await tx.userOrganization.findUnique({
+          where: { userId_organizationId: { userId: user.id, organizationId: orgId } },
+        });
+        if (!existingOrgMember) {
+          await tx.userOrganization.create({
+            data: {
+              userId: user.id,
+              organizationId: orgId,
+              role: "member",
+            },
+          });
+        }
+      }
     }
 
     if (input.departmentId) {
@@ -119,6 +151,23 @@ export async function createPortalUser(creatorId: string, input: CreatePortalUse
           });
         }
       }
+    }
+
+    if (isClientRole(targetRole.name)) {
+      const firstClientOrg = input.clientOrganizationRoles?.[0]?.organizationId;
+      await tx.clientProfile.create({
+        data: {
+          userId: user.id,
+          organizationId: firstClientOrg ?? null,
+        },
+      });
+    } else {
+      await tx.workerProfile.create({
+        data: {
+          userId: user.id,
+          departmentId: input.departmentId ?? null,
+        },
+      });
     }
 
     return tx.user.findUnique({

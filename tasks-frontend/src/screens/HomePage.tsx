@@ -16,10 +16,16 @@ import {
   SimpleGrid,
   Badge,
   Skeleton,
+  Dialog,
+  Portal,
+  CloseButton,
 } from "@chakra-ui/react";
 import { useAuthStore } from "@/entities/user/model/authStore";
+import { usePortals } from "@/features/portal/model/usePortals";
+import CreatePortalForm from "@/features/portal/ui/CreatePortalForm";
 import SEO from "@/shared/ui/SEO";
 import { solutions } from "./solutions/data";
+import { SolutionCarousel } from "./solutions/SolutionCarousel";
 import {
   FiLayers,
   FiCheckSquare,
@@ -29,6 +35,10 @@ import {
   FiShield,
   FiCheckCircle,
   FiArrowRight,
+  FiPlus,
+  FiSearch,
+  FiBell,
+  FiClock,
 } from "react-icons/fi";
 
 const features = [
@@ -79,6 +89,209 @@ function FeatureCard({ icon: Icon, title, description }: { icon: React.ElementTy
         </Text>
       </Card.Body>
     </Card.Root>
+  );
+}
+
+function AuthenticatedDashboard({ router }: { router: ReturnType<typeof useRouter> }) {
+  const { user } = useAuthStore();
+  const { data: portals, isLoading } = usePortals();
+  const [open, setOpen] = useState(false);
+  const firstName = user?.name?.split(" ")[0] || user?.name || "Коллега";
+
+  const quickActions = [
+    {
+      icon: FiLayers,
+      title: "Мои порталы",
+      description: "Перейти к списку порталов и проектов",
+      href: "/portals",
+      color: "blue",
+    },
+    {
+      icon: FiUsers,
+      title: "Вступить в портал",
+      description: "Найти существующий портал по названию",
+      href: "/join-portal",
+      color: "green",
+    },
+    {
+      icon: FiCheckSquare,
+      title: "Запросы на вступление",
+      description: "Управление приглашениями и заявками",
+      href: "/portal-requests",
+      color: "purple",
+    },
+  ];
+
+  const stats = [
+    { label: "Порталов", value: portals?.length ?? 0, icon: FiLayers },
+    { label: "В ожидании", value: 0, icon: FiClock },
+    { label: "Уведомлений", value: 0, icon: FiBell },
+  ];
+
+  return (
+    <Box bg="gray.50" minH="calc(100vh - 56px)">
+      <Container maxW="1200px" py="8" px="6">
+        <Stack gap="8">
+          <Box
+            bg="white"
+            borderRadius="2xl"
+            p={{ base: "6", md: "8" }}
+            borderWidth="1px"
+            borderColor="gray.100"
+            position="relative"
+            overflow="hidden"
+          >
+            <Box
+              position="absolute"
+              top="-40%"
+              right="-10%"
+              w="300px"
+              h="300px"
+              borderRadius="full"
+              bg="blue.100"
+              opacity="0.4"
+              filter="blur(60px)"
+            />
+            <Box position="relative" zIndex="1">
+              <Flex direction={{ base: "column", md: "row" }} gap="6" align={{ base: "flex-start", md: "center" }} justify="space-between">
+                <HStack gap="4">
+                  <Box
+                    w="16"
+                    h="16"
+                    borderRadius="2xl"
+                    bg="blue.600"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    color="white"
+                    fontWeight="800"
+                    fontSize="2xl"
+                    boxShadow="0 4px 12px rgba(37, 99, 235, 0.25)"
+                  >
+                    {(user?.name || user?.email || "?").charAt(0).toUpperCase()}
+                  </Box>
+                  <Stack gap="0">
+                    <Text color="gray.500" fontSize="sm">Добро пожаловать</Text>
+                    <Heading size="xl" color="gray.900">{firstName}</Heading>
+                    <Text color="gray.500" fontSize="sm">{user?.email}</Text>
+                  </Stack>
+                </HStack>
+                <Button colorPalette="blue" size="lg" onClick={() => setOpen(true)}>
+                  <FiPlus />
+                  Создать портал
+                </Button>
+              </Flex>
+            </Box>
+          </Box>
+
+          <SimpleGrid columns={{ base: 1, md: 3 }} gap="4">
+            {stats.map((stat) => (
+              <Card.Root key={stat.label} p="5" bg="white" borderWidth="1px" borderColor="gray.100" boxShadow="0 1px 2px rgba(0,0,0,0.04)">
+                <Card.Body>
+                  <HStack gap="4" align="center">
+                    <Box w="12" h="12" borderRadius="lg" bg="blue.50" display="flex" alignItems="center" justifyContent="center">
+                      <Box as={stat.icon} color="blue.600" fontSize="24px" />
+                    </Box>
+                    <Stack gap="0">
+                      <Text color="gray.500" fontSize="sm">{stat.label}</Text>
+                      <Text fontSize="2xl" fontWeight="bold" color="gray.900">
+                        {isLoading && stat.label === "Порталов" ? "—" : stat.value}
+                      </Text>
+                    </Stack>
+                  </HStack>
+                </Card.Body>
+              </Card.Root>
+            ))}
+          </SimpleGrid>
+
+          <Box>
+            <Heading size="md" mb="4" color="gray.900">Быстрые действия</Heading>
+            <SimpleGrid columns={{ base: 1, md: 3 }} gap="4">
+              {quickActions.map((action) => (
+                <Card.Root
+                  key={action.title}
+                  p="5"
+                  bg="white"
+                  borderWidth="1px"
+                  borderColor="gray.100"
+                  cursor="pointer"
+                  onClick={() => router.push(action.href)}
+                  _hover={{ borderColor: "blue.300", transform: "translateY(-2px)" }}
+                  transition="all 0.2s"
+                  boxShadow="0 1px 2px rgba(0,0,0,0.04)"
+                >
+                  <Card.Body>
+                    <HStack gap="4" align="flex-start">
+                      <Box w="10" h="10" borderRadius="md" bg={`${action.color}.50`} display="flex" alignItems="center" justifyContent="center" flexShrink={0}>
+                        <Box as={action.icon} color={`${action.color}.600`} fontSize="20px" />
+                      </Box>
+                      <Stack gap="1">
+                        <Heading size="md" color="gray.900">{action.title}</Heading>
+                        <Text fontSize="sm" color="gray.600">{action.description}</Text>
+                      </Stack>
+                    </HStack>
+                  </Card.Body>
+                </Card.Root>
+              ))}
+            </SimpleGrid>
+          </Box>
+
+          {portals && portals.length > 0 && (
+            <Box>
+              <Heading size="md" mb="4" color="gray.900">Недавние порталы</Heading>
+              <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap="4">
+                {portals.slice(0, 6).map((portal) => (
+                  <Card.Root
+                    key={portal.id}
+                    p="5"
+                    bg="white"
+                    borderWidth="1px"
+                    borderColor="gray.100"
+                    cursor="pointer"
+                    onClick={() => router.push(`/portals/${portal.slug}`)}
+                    _hover={{ shadow: "md", borderColor: "blue.300" }}
+                    transition="all 0.2s"
+                  >
+                    <Card.Body>
+                      <HStack gap="3" align="center">
+                        <Box w="10" h="10" borderRadius="md" bg="blue.50" display="flex" alignItems="center" justifyContent="center">
+                          <Box as={FiLayers} color="blue.600" fontSize="20px" />
+                        </Box>
+                        <Stack gap="0">
+                          <Heading size="sm" color="gray.900">{portal.name}</Heading>
+                          <Text fontSize="xs" color="gray.500">/{portal.slug}</Text>
+                        </Stack>
+                      </HStack>
+                    </Card.Body>
+                  </Card.Root>
+                ))}
+              </SimpleGrid>
+            </Box>
+          )}
+        </Stack>
+      </Container>
+
+      <Dialog.Root open={open} onOpenChange={(e) => setOpen(e.open)}>
+        <Portal>
+          <Dialog.Backdrop bg="blackAlpha.400" />
+          <Dialog.Positioner>
+            <Dialog.Content bg="white" borderColor="gray.100" borderWidth="1px" boxShadow="0 8px 30px rgba(0,0,0,0.08)" borderRadius="xl">
+              <Dialog.Header>
+                <Flex justify="space-between" align="center" w="full">
+                  <Dialog.Title color="gray.900">Создать портал</Dialog.Title>
+                  <Dialog.CloseTrigger asChild>
+                    <CloseButton size="sm" />
+                  </Dialog.CloseTrigger>
+                </Flex>
+              </Dialog.Header>
+              <Dialog.Body>
+                <CreatePortalForm onSuccess={() => setOpen(false)} />
+              </Dialog.Body>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
+    </Box>
   );
 }
 
@@ -337,60 +550,7 @@ export default function HomePage() {
   }
 
   if (token) {
-    return (
-      <Container maxW="1200px" py="10">
-        <Stack gap="8">
-          <Box>
-            <Heading mb="2" size="xl">Добро пожаловать в Коллеги</Heading>
-            <Text color="gray.600" fontSize="lg">Выберите раздел, чтобы продолжить работу.</Text>
-          </Box>
-
-          <SimpleGrid columns={{ base: 1, md: 3 }} gap="4">
-            <Card.Root p="5" cursor="pointer" onClick={() => router.push("/portals")} _hover={{ shadow: "md", borderColor: "blue.300" }} transition="all 0.2s">
-              <Card.Body>
-                <Box w="10" h="10" borderRadius="md" bg="blue.50" display="flex" alignItems="center" justifyContent="center" mb="3">
-                  <FiLayers size={20} color="#2563eb" />
-                </Box>
-                <Heading size="md" mb="2" color="blue.700">
-                  Мои порталы
-                </Heading>
-                <Text fontSize="sm" color="gray.600">
-                  Перейти к списку порталов и проектов.
-                </Text>
-              </Card.Body>
-            </Card.Root>
-
-            <Card.Root p="5" cursor="pointer" onClick={() => router.push("/join-portal")} _hover={{ shadow: "md", borderColor: "blue.300" }} transition="all 0.2s">
-              <Card.Body>
-                <Box w="10" h="10" borderRadius="md" bg="blue.50" display="flex" alignItems="center" justifyContent="center" mb="3">
-                  <FiUsers size={20} color="#2563eb" />
-                </Box>
-                <Heading size="md" mb="2" color="blue.700">
-                  Вступить в портал
-                </Heading>
-                <Text fontSize="sm" color="gray.600">
-                  Найти существующий портал по названию.
-                </Text>
-              </Card.Body>
-            </Card.Root>
-
-            <Card.Root p="5" cursor="pointer" onClick={() => router.push("/portal-requests")} _hover={{ shadow: "md", borderColor: "blue.300" }} transition="all 0.2s">
-              <Card.Body>
-                <Box w="10" h="10" borderRadius="md" bg="blue.50" display="flex" alignItems="center" justifyContent="center" mb="3">
-                  <FiCheckSquare size={20} color="#2563eb" />
-                </Box>
-                <Heading size="md" mb="2" color="blue.700">
-                  Запросы на вступление
-                </Heading>
-                <Text fontSize="sm" color="gray.600">
-                  Управление приглашениями и заявками.
-                </Text>
-              </Card.Body>
-            </Card.Root>
-          </SimpleGrid>
-        </Stack>
-      </Container>
-    );
+    return <AuthenticatedDashboard router={router} />;
   }
 
   return (
@@ -439,7 +599,7 @@ export default function HomePage() {
                     </Badge>
                   </div>
                   <div data-animate>
-                    <Heading size="4xl" lineHeight="1.1" letterSpacing="-0.03em">
+                    <Heading as="h1" size="4xl" lineHeight="1.1" letterSpacing="-0.03em">
                       Порядок в проектах, без хаоса в таблицах
                     </Heading>
                   </div>
@@ -711,36 +871,7 @@ export default function HomePage() {
                 </Heading>
               </Box>
 
-              <SimpleGrid columns={{ base: 1, md: 2 }} gap="6">
-                {solutions.map((solution) => (
-                  <Card.Root
-                    key={solution.slug}
-                    p="6"
-                    bg="white"
-                    borderWidth="1px"
-                    borderColor="gray.200"
-                    cursor="pointer"
-                    _hover={{ borderColor: "blue.400", shadow: "lg", transform: "translateY(-4px)" }}
-                    transition="transform 0.25s ease, box-shadow 0.2s ease, border-color 0.2s ease"
-                    onClick={() => router.push(`/solutions/${solution.slug}`)}
-                  >
-                    <Card.Body>
-                      <Stack gap="4">
-                        <Heading size="md" color="gray.900" lineHeight="1.4">
-                          {solution.question}
-                        </Heading>
-                        <Text fontSize="sm" color="gray.600" lineHeight="1.6">
-                          {solution.description}
-                        </Text>
-                        <HStack gap="2" color="blue.600" fontSize="sm" fontWeight="semibold">
-                          <Text>Как решаем</Text>
-                          <FiArrowRight />
-                        </HStack>
-                      </Stack>
-                    </Card.Body>
-                  </Card.Root>
-                ))}
-              </SimpleGrid>
+              <SolutionCarousel solutions={solutions} title="Частые вопросы" />
             </Stack>
           </div>
         </Container>
@@ -778,20 +909,6 @@ export default function HomePage() {
         </Container>
       </Box>
 
-      {/* Footer */}
-      <Box bg="#0f172a" color="slate.400" py="10" borderTopWidth="1px" borderColor="whiteAlpha.100">
-        <Container maxW="1200px">
-          <Flex justify="space-between" align="center" flexWrap="wrap" gap="4">
-            <HStack gap="2">
-              <Box w="8" h="8" borderRadius="md" bg="blue.600" display="flex" alignItems="center" justifyContent="center" color="white" fontWeight="800">
-                К
-              </Box>
-              <Text fontWeight="bold" color="white">Коллеги</Text>
-            </HStack>
-            <Text fontSize="sm">© 2026 Коллеги. Все права защищены.</Text>
-          </Flex>
-        </Container>
-      </Box>
     </Box>
   );
 }

@@ -26,18 +26,11 @@ import { useOrganizations } from "@/features/organization/model/useOrganizations
 import { useDepartments } from "@/features/department/model/useDepartments";
 
 const ROLE_LABELS: Record<string, string> = {
-  portal_admin: "Администратор портала",
-  portal_manager: "Менеджер портала",
-  client_project_owner: "Владелец проектов клиента",
-  client_project_member: "Участник проектов клиента",
-  client_viewer: "Наблюдатель клиента",
-  client_manager: "Менеджер клиента",
-  worker_admin: "Администратор работников",
-  worker_manager: "Менеджер работников",
-  worker_executor: "Исполнитель",
-  worker: "Работник",
-  project_manager: "Менеджер проекта",
-  viewer: "Наблюдатель",
+  employee_admin: "Администратор",
+  employee_manager: "Менеджер",
+  employee_executor: "Исполнитель",
+  client_owner: "Владелец",
+  client_worker: "Работник",
 };
 
 function getRoleLabel(name: string): string {
@@ -45,7 +38,7 @@ function getRoleLabel(name: string): string {
 }
 
 function isClientRole(name: string): boolean {
-  return name.toLowerCase().includes("client");
+  return name.toLowerCase() === "client_owner" || name.toLowerCase() === "client_worker";
 }
 
 export default function PortalRequestsPage() {

@@ -5,7 +5,8 @@ import { requireAuth } from "../middleware/auth.js";
 const router = Router();
 
 router.get("/", userController.listUsers);
-router.get("/portal", requireAuth, userController.listPortalUsers);
+router.get("/portal/employees", requireAuth, userController.listPortalEmployees);
+router.get("/portal/clients", requireAuth, userController.listPortalClients);
 router.get("/creatable-roles", requireAuth, userController.listCreatableRoles);
 router.get("/:id", userController.getUser);
 router.get("/:id/roles", requireAuth, userController.listUserRoles);

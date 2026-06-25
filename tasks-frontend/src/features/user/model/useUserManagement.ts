@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createPortalUser, fetchCreatableRoles, fetchPortalUsers, fetchUserRoles, assignRole } from "../api/userManagementApi";
+import { createPortalUser, fetchCreatableRoles, fetchPortalEmployees, fetchPortalClients, fetchUserRoles, assignRole, type PortalUser } from "../api/userManagementApi";
 
 export function useCreatableRoles(portalId: string) {
   return useQuery({
@@ -9,12 +9,29 @@ export function useCreatableRoles(portalId: string) {
   });
 }
 
-export function usePortalUsers(portalId: string) {
+export function usePortalEmployees(portalId: string) {
   return useQuery({
-    queryKey: ["portal-users", portalId],
-    queryFn: () => fetchPortalUsers(portalId),
+    queryKey: ["portal-employees", portalId],
+    queryFn: () => fetchPortalEmployees(portalId),
     enabled: !!portalId,
   });
+}
+
+export function usePortalClients(portalId: string) {
+  return useQuery({
+    queryKey: ["portal-clients", portalId],
+    queryFn: () => fetchPortalClients(portalId),
+    enabled: !!portalId,
+  });
+}
+
+export function usePortalUsers(portalId: string) {
+  const { data: employees } = usePortalEmployees(portalId);
+  const { data: clients } = usePortalClients(portalId);
+  const map = new Map<string, PortalUser>();
+  employees?.forEach((u) => map.set(u.id, u));
+  clients?.forEach((u) => map.set(u.id, u));
+  return { data: Array.from(map.values()) };
 }
 
 export function useCreatePortalUser() {
@@ -23,7 +40,9 @@ export function useCreatePortalUser() {
     mutationFn: createPortalUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
-      queryClient.invalidateQueries({ queryKey: ["portal-users"] });
+      queryClient.invalidateQueries({ queryKey: ["portal-employees"] });
+      queryClient.invalidateQueries({ queryKey: ["portal-clients"] });
+      queryClient.invalidateQueries({ queryKey: ["departments"] });
     },
   });
 }

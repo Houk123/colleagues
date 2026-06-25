@@ -8,58 +8,63 @@ import {
   Dialog,
   Portal,
   NativeSelect,
-  Checkbox,
 } from "@chakra-ui/react";
 import { useCreatableRoles, useCreatePortalUser } from "@/features/user/model/useUserManagement";
 import { useOrganizations } from "@/features/organization/model/useOrganizations";
 import { useDepartments } from "@/features/department/model/useDepartments";
 import { useProjects } from "@/features/project/model/useProjects";
 import { useRoles } from "@/features/role/model/useRoles";
+import { FiX } from "react-icons/fi";
 
 const ROLE_LABELS: Record<string, string> = {
-  portal_admin: "Администратор портала",
-  portal_manager: "Менеджер портала",
-  client_project_owner: "Владелец проектов клиента",
-  client_project_member: "Участник проектов клиента",
-  client_viewer: "Наблюдатель клиента",
-  client_manager: "Менеджер клиента",
-  worker_admin: "Администратор работников",
-  worker_manager: "Менеджер работников",
-  worker_executor: "Исполнитель",
-  worker: "Работник",
-  project_manager: "Менеджер проекта",
-  viewer: "Наблюдатель",
+  employee_admin: "Администратор",
+  employee_manager: "Менеджер",
+  employee_executor: "Исполнитель",
+  client_owner: "Владелец",
+  client_worker: "Работник",
 };
 
 function getRoleLabel(name: string): string {
   return ROLE_LABELS[name] || name;
 }
 
+const ALLOWED_ROLES = new Set([
+  "employee_admin",
+  "employee_manager",
+  "employee_executor",
+  "client_owner",
+  "client_worker",
+]);
+
 function isClientRole(name: string): boolean {
-  return name.toLowerCase().includes("client");
+  return name.toLowerCase() === "client_owner" || name.toLowerCase() === "client_worker";
 }
 
 function isWorkerRole(name: string): boolean {
-  return name.toLowerCase().includes("worker");
+  return name.toLowerCase().startsWith("employee_");
 }
 
 export default function CreateUserDialog({
   portalId,
   open,
   onOpenChange,
+  userType,
 }: {
   portalId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  userType?: "employee" | "client";
 }) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [roleId, setRoleId] = useState("");
-  const [organizationId, setOrganizationId] = useState("");
+  const [organizationIds, setOrganizationIds] = useState<string[]>([]);
+  const [selectedOrgId, setSelectedOrgId] = useState("");
+  const [clientOrganizationRoles, setClientOrganizationRoles] = useState<{ organizationId: string; roleId: string }[]>([]);
+  const [selectedClientOrgId, setSelectedClientOrgId] = useState("");
+  const [selectedClientRoleId, setSelectedClientRoleId] = useState("");
   const [departmentId, setDepartmentId] = useState("");
-  const [autoCreateOrg, setAutoCreateOrg] = useState(false);
-  const [orgName, setOrgName] = useState("");
   const [projectAssignments, setProjectAssignments] = useState<{ projectId: string; roleId: string }[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [selectedProjectRoleId, setSelectedProjectRoleId] = useState("");
@@ -70,39 +75,55 @@ export default function CreateUserDialog({
   const { data: allRoles } = useRoles();
   const createUser = useCreatePortalUser();
 
-  const selectedRole = roles?.find((r) => r.id === roleId);
-  const showOrg = selectedRole ? isClientRole(selectedRole.name) : false;
-  const showDept = selectedRole ? isWorkerRole(selectedRole.name) : false;
+  const filteredRoles = roles?.filter((r) => {
+    if (!ALLOWED_ROLES.has(r.name.toLowerCase())) return false;
+    if (userType === "client") return isClientRole(r.name);
+    if (userType === "employee") return isWorkerRole(r.name);
+    return true;
+  });
 
-  const effectiveOrgId = showOrg && !autoCreateOrg ? organizationId : "";
-  const { data: projects } = useProjects(portalId, effectiveOrgId || undefined);
+  const isClient = userType === "client";
+  const isEmployee = userType === "employee";
+  const showDept = isEmployee;
+  const showProjects = true;
+
+  const clientOrgIds = isClient
+    ? clientOrganizationRoles.map((e) => e.organizationId)
+    : organizationIds;
+  const { data: allProjects } = useProjects(portalId);
+  const projects = allProjects?.filter((p) => clientOrgIds.length > 0 && p.organizationId && clientOrgIds.includes(p.organizationId));
 
   const reset = () => {
     setEmail("");
     setName("");
     setPassword("");
     setRoleId("");
-    setOrganizationId("");
+    setOrganizationIds([]);
+    setSelectedOrgId("");
+    setClientOrganizationRoles([]);
+    setSelectedClientOrgId("");
+    setSelectedClientRoleId("");
     setDepartmentId("");
-    setAutoCreateOrg(false);
-    setOrgName("");
     setProjectAssignments([]);
     setSelectedProjectId("");
     setSelectedProjectRoleId("");
   };
 
   const handleSubmit = async () => {
-    if (!email || !name || !password || !roleId) return;
+    if (!email || !name || !password) return;
+    if (!isClient && !roleId) return;
+    if (isClient && clientOrganizationRoles.length === 0) return;
+    const effectiveRoleId = isClient ? clientOrganizationRoles[0].roleId : roleId;
     await createUser.mutateAsync({
       email,
       name,
       password,
       portalId,
-      roleId,
-      ...(showOrg && autoCreateOrg ? { organizationId: undefined } : {}),
-      ...(showOrg && !autoCreateOrg && organizationId ? { organizationId } : {}),
+      roleId: effectiveRoleId,
+      ...(isClient && clientOrganizationRoles.length > 0 ? { clientOrganizationRoles } : {}),
+      ...(!isClient && organizationIds.length > 0 ? { organizationIds } : {}),
       ...(showDept && departmentId ? { departmentId } : {}),
-      ...(projectAssignments.length > 0 ? { projectAssignments } : {}),
+      ...(!isClient && projectAssignments.length > 0 ? { projectAssignments } : {}),
     });
     reset();
     onOpenChange(false);
@@ -115,7 +136,7 @@ export default function CreateUserDialog({
         <Dialog.Positioner>
           <Dialog.Content>
             <Dialog.Header>
-              <Dialog.Title>Создать пользователя</Dialog.Title>
+              <Dialog.Title>{userType === "client" ? "Добавить клиента" : userType === "employee" ? "Добавить сотрудника" : "Создать пользователя"}</Dialog.Title>
             </Dialog.Header>
             <Dialog.Body>
               <Stack gap="4">
@@ -136,71 +157,163 @@ export default function CreateUserDialog({
                     placeholder="••••••••"
                   />
                 </Box>
-                <Box>
-                  <Text mb="1" fontWeight="bold">Роль</Text>
-                  <NativeSelect.Root>
-                    <NativeSelect.Field value={roleId} onChange={(e) => setRoleId(e.target.value)}>
-                      <option value="">Выберите роль</option>
-                      {roles?.map((role) => (
-                        <option key={role.id} value={role.id}>
-                          {getRoleLabel(role.name)} ({role.scope})
-                        </option>
-                      ))}
-                    </NativeSelect.Field>
-                  </NativeSelect.Root>
-                </Box>
+                {!isClient && (
+                  <Box>
+                    <Text mb="1" fontWeight="bold">Роль</Text>
+                    <NativeSelect.Root>
+                      <NativeSelect.Field value={roleId} onChange={(e) => setRoleId(e.target.value)}>
+                        <option value="">Выберите роль</option>
+                        {filteredRoles?.map((role) => (
+                          <option key={role.id} value={role.id}>
+                            {getRoleLabel(role.name)} ({role.scope})
+                          </option>
+                        ))}
+                      </NativeSelect.Field>
+                    </NativeSelect.Root>
+                  </Box>
+                )}
 
-                {showOrg && (
+                {isClient && (
                   <Stack gap="3">
                     <Box>
-                      <Checkbox.Root
-                        checked={autoCreateOrg}
-                        onCheckedChange={(e) => setAutoCreateOrg(!!e.checked)}
-                      >
-                        <Checkbox.HiddenInput />
-                        <Checkbox.Control />
-                        <Checkbox.Label>Создать новую организацию</Checkbox.Label>
-                      </Checkbox.Root>
-                    </Box>
-                    {autoCreateOrg ? (
-                      <Box>
-                        <Text mb="1" fontWeight="bold">Название организации</Text>
-                        <Input
-                          value={orgName}
-                          onChange={(e) => setOrgName(e.target.value)}
-                          placeholder="ООО Ромашка"
-                        />
-                      </Box>
-                    ) : (
-                      <Box>
-                        <Text mb="1" fontWeight="bold">Организация</Text>
-                        <NativeSelect.Root>
-                          <NativeSelect.Field
-                            value={organizationId}
-                            onChange={(e) => setOrganizationId(e.target.value)}
+                      <Text mb="1" fontWeight="bold">Организации и роли клиента</Text>
+                      <Text fontSize="xs" color="gray.500" mb="2">Для каждой организации выберите роль: Владелец или Работник</Text>
+                      <Stack gap="2">
+                        {clientOrganizationRoles.map((entry) => {
+                          const org = organizations?.find((o) => o.id === entry.organizationId);
+                          const role = allRoles?.find((r) => r.id === entry.roleId);
+                          return (
+                            <Stack key={entry.organizationId} direction="row" justify="space-between" align="center">
+                              <Text fontSize="sm">{org?.name ?? entry.organizationId} — {role ? getRoleLabel(role.name) : entry.roleId}</Text>
+                              <Button
+                                size="xs"
+                                variant="ghost"
+                                colorPalette="red"
+                                onClick={() => setClientOrganizationRoles(clientOrganizationRoles.filter((e) => e.organizationId !== entry.organizationId))}
+                              >
+                                <FiX />
+                              </Button>
+                            </Stack>
+                          );
+                        })}
+                        <Stack direction="row" gap="2" align="end">
+                          <Box flex="1">
+                            <NativeSelect.Root>
+                              <NativeSelect.Field
+                                value={selectedClientOrgId}
+                                onChange={(e) => setSelectedClientOrgId(e.target.value)}
+                              >
+                                <option value="">Организация</option>
+                                {organizations?.filter((o) => !clientOrganizationRoles.some((e) => e.organizationId === o.id)).map((org) => (
+                                  <option key={org.id} value={org.id}>
+                                    {org.name}
+                                  </option>
+                                ))}
+                              </NativeSelect.Field>
+                            </NativeSelect.Root>
+                          </Box>
+                          <Box flex="1">
+                            <NativeSelect.Root>
+                              <NativeSelect.Field
+                                value={selectedClientRoleId}
+                                onChange={(e) => setSelectedClientRoleId(e.target.value)}
+                              >
+                                <option value="">Роль</option>
+                                {filteredRoles?.filter((r) => isClientRole(r.name)).map((role) => (
+                                  <option key={role.id} value={role.id}>
+                                    {getRoleLabel(role.name)}
+                                  </option>
+                                ))}
+                              </NativeSelect.Field>
+                            </NativeSelect.Root>
+                          </Box>
+                          <Button
+                            size="sm"
+                            colorPalette="blue"
+                            disabled={!selectedClientOrgId || !selectedClientRoleId}
+                            onClick={() => {
+                              if (selectedClientOrgId && selectedClientRoleId && !clientOrganizationRoles.some((e) => e.organizationId === selectedClientOrgId)) {
+                                setClientOrganizationRoles([...clientOrganizationRoles, { organizationId: selectedClientOrgId, roleId: selectedClientRoleId }]);
+                                setSelectedClientOrgId("");
+                                setSelectedClientRoleId("");
+                              }
+                            }}
                           >
-                            <option value="">Не выбрано</option>
-                            {organizations?.map((org) => (
-                              <option key={org.id} value={org.id}>
-                                {org.name}
-                              </option>
-                            ))}
-                          </NativeSelect.Field>
-                        </NativeSelect.Root>
-                      </Box>
-                    )}
+                            +
+                          </Button>
+                        </Stack>
+                      </Stack>
+                    </Box>
+                  </Stack>
+                )}
+
+                {isEmployee && (
+                  <Stack gap="3">
+                    <Box>
+                      <Text mb="1" fontWeight="bold">Организации</Text>
+                      <Text fontSize="xs" color="gray.500" mb="2">Можно не выбирать или выбрать несколько</Text>
+                      <Stack gap="2">
+                        {organizationIds.map((id) => {
+                          const org = organizations?.find((o) => o.id === id);
+                          return (
+                            <Stack key={id} direction="row" justify="space-between" align="center">
+                              <Text fontSize="sm">{org?.name ?? id}</Text>
+                              <Button
+                                size="xs"
+                                variant="ghost"
+                                colorPalette="red"
+                                onClick={() => setOrganizationIds(organizationIds.filter((o) => o !== id))}
+                              >
+                                <FiX />
+                              </Button>
+                            </Stack>
+                          );
+                        })}
+                        <Stack direction="row" gap="2" align="end">
+                          <Box flex="1">
+                            <NativeSelect.Root>
+                              <NativeSelect.Field
+                                value={selectedOrgId}
+                                onChange={(e) => setSelectedOrgId(e.target.value)}
+                              >
+                                <option value="">Выберите организацию</option>
+                                {organizations?.filter((o) => !organizationIds.includes(o.id)).map((org) => (
+                                  <option key={org.id} value={org.id}>
+                                    {org.name}
+                                  </option>
+                                ))}
+                              </NativeSelect.Field>
+                            </NativeSelect.Root>
+                          </Box>
+                          <Button
+                            size="sm"
+                            colorPalette="blue"
+                            disabled={!selectedOrgId}
+                            onClick={() => {
+                              if (selectedOrgId && !organizationIds.includes(selectedOrgId)) {
+                                setOrganizationIds([...organizationIds, selectedOrgId]);
+                                setSelectedOrgId("");
+                              }
+                            }}
+                          >
+                            +
+                          </Button>
+                        </Stack>
+                      </Stack>
+                    </Box>
                   </Stack>
                 )}
 
                 {showDept && (
                   <Box>
                     <Text mb="1" fontWeight="bold">Отдел</Text>
+                    <Text fontSize="xs" color="gray.500" mb="2">Закрепление за отделом необязательно</Text>
                     <NativeSelect.Root>
                       <NativeSelect.Field
                         value={departmentId}
                         onChange={(e) => setDepartmentId(e.target.value)}
                       >
-                        <option value="">Не выбрано</option>
+                        <option value="">Без отдела</option>
                         {departments?.map((dept) => (
                           <option key={dept.id} value={dept.id}>
                             {dept.name}
@@ -211,8 +324,12 @@ export default function CreateUserDialog({
                   </Box>
                 )}
 
+                {showProjects && (
                 <Box>
                   <Text mb="1" fontWeight="bold">Проекты</Text>
+                  <Text fontSize="xs" color="gray.500" mb="2">
+                    {clientOrgIds.length === 0 ? "Сначала выберите организацию" : "Проекты выбранных организаций (необязательно)"}
+                  </Text>
                   <Stack gap="2">
                     {projectAssignments.map((pa, idx) => {
                       const proj = projects?.find((p) => p.id === pa.projectId);
@@ -224,11 +341,11 @@ export default function CreateUserDialog({
                           </Text>
                           <Button
                             size="xs"
-                            variant="outline"
+                            variant="ghost"
                             colorPalette="red"
                             onClick={() => setProjectAssignments(projectAssignments.filter((_, i) => i !== idx))}
                           >
-                            Убрать
+                            <FiX />
                           </Button>
                         </Stack>
                       );
@@ -240,7 +357,7 @@ export default function CreateUserDialog({
                             value={selectedProjectId}
                             onChange={(e) => setSelectedProjectId(e.target.value)}
                           >
-                            <option value="">Проект</option>
+                            <option value="">{organizationIds.length === 0 ? "Сначала организация" : "Проект"}</option>
                             {projects?.filter(
                               (p) => !projectAssignments.some((pa) => pa.projectId === p.id)
                             ).map((p) => (
@@ -256,7 +373,7 @@ export default function CreateUserDialog({
                             onChange={(e) => setSelectedProjectRoleId(e.target.value)}
                           >
                             <option value="">Роль</option>
-                            {allRoles?.map((r) => (
+                            {allRoles?.filter((r) => isWorkerRole(r.name)).map((r) => (
                               <option key={r.id} value={r.id}>{getRoleLabel(r.name)}</option>
                             ))}
                           </NativeSelect.Field>
@@ -280,9 +397,10 @@ export default function CreateUserDialog({
                     </Stack>
                   </Stack>
                 </Box>
+                )}
 
                 <Button colorPalette="blue" loading={createUser.isPending} onClick={handleSubmit}>
-                  Создать пользователя
+                  {userType === "client" ? "Добавить клиента" : userType === "employee" ? "Добавить сотрудника" : "Создать пользователя"}
                 </Button>
               </Stack>
             </Dialog.Body>

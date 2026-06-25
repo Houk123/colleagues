@@ -2,10 +2,53 @@ import type { Response } from "express";
 import type { AuthRequest } from "../middleware/auth.js";
 import * as projectService from "../services/projectService.js";
 import * as portalService from "../services/portalService.js";
+import { prisma } from "../config/db.js";
 
 async function isPortalOwner(userId: string, portalId: string): Promise<boolean> {
   const portal = await portalService.getPortalById(portalId);
   return portal?.ownerId === userId;
+}
+
+async function isEmployee(userId: string, portalId: string): Promise<boolean> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { workerProfile: { select: { id: true } } },
+  });
+  if (user?.workerProfile) return true;
+  const owner = await isPortalOwner(userId, portalId);
+  return owner;
+}
+
+async function getClientProjectIds(userId: string, portalId: string): Promise<{ organizationIds: string[]; projectIds: string[] }> {
+  const orgMemberships = await prisma.userOrganization.findMany({
+    where: { userId, organization: { portalId } },
+    select: { organizationId: true },
+  });
+  const assignments = await prisma.userProject.findMany({
+    where: { userId, project: { portalId } },
+    select: { projectId: true },
+  });
+  return {
+    organizationIds: orgMemberships.map((o) => o.organizationId),
+    projectIds: assignments.map((a) => a.projectId),
+  };
+}
+
+async function canAccessProject(userId: string, project: { portalId: string; organizationId: string | null; id: string }): Promise<boolean> {
+  const owner = await isPortalOwner(userId, project.portalId);
+  if (owner) return true;
+
+  const employee = await isEmployee(userId, project.portalId);
+  if (employee) return true;
+
+  const { organizationIds, projectIds } = await getClientProjectIds(userId, project.portalId);
+  if (projectIds.length > 0) {
+    return projectIds.includes(project.id);
+  }
+  if (organizationIds.length > 0 && project.organizationId) {
+    return organizationIds.includes(project.organizationId);
+  }
+  return false;
 }
 
 export async function createProject(req: AuthRequest, res: Response): Promise<void> {
@@ -39,11 +82,19 @@ export async function listProjects(req: AuthRequest, res: Response): Promise<voi
       return;
     }
     const owner = await isPortalOwner(userId, portalId);
-    const projects = await projectService.getProjectsByPortal(
+    const employee = await isEmployee(userId, portalId);
+    let projects = await projectService.getProjectsByPortal(
       portalId,
       typeof organizationId === "string" ? organizationId : undefined,
-      owner ? undefined : userId,
     );
+    if (!owner && !employee) {
+      const { organizationIds, projectIds } = await getClientProjectIds(userId, portalId);
+      projects = projects.filter((p) => {
+        if (projectIds.length > 0) return projectIds.includes(p.id);
+        if (organizationIds.length > 0 && p.organizationId) return organizationIds.includes(p.organizationId);
+        return false;
+      });
+    }
     res.status(200).json({ projects });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to list projects";
@@ -60,9 +111,8 @@ export async function getProject(req: AuthRequest, res: Response): Promise<void>
       res.status(404).json({ error: "Project not found" });
       return;
     }
-    const owner = await isPortalOwner(userId, project.portalId);
-    const isMember = project.userProjects.some((up) => up.userId === userId);
-    if (!owner && !isMember) {
+    const allowed = await canAccessProject(userId, project);
+    if (!allowed) {
       res.status(403).json({ error: "Access denied" });
       return;
     }
@@ -86,9 +136,8 @@ export async function getProjectBySlug(req: AuthRequest, res: Response): Promise
       res.status(404).json({ error: "Project not found" });
       return;
     }
-    const owner = await isPortalOwner(userId, project.portalId);
-    const isMember = project.userProjects.some((up) => up.userId === userId);
-    if (!owner && !isMember) {
+    const allowed = await canAccessProject(userId, project);
+    if (!allowed) {
       res.status(403).json({ error: "Access denied" });
       return;
     }
@@ -111,6 +160,29 @@ export async function addMember(req: AuthRequest, res: Response): Promise<void> 
     res.status(201).json({ member });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to add member";
+    res.status(400).json({ error: message });
+  }
+}
+
+export async function updateProject(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const { name, description, organizationId } = req.body;
+    const project = await projectService.updateProject(id, { name, description, organizationId });
+    res.status(200).json({ project });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to update project";
+    res.status(400).json({ error: message });
+  }
+}
+
+export async function deleteProject(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    await projectService.deleteProject(id);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to delete project";
     res.status(400).json({ error: message });
   }
 }

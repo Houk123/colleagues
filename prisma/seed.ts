@@ -4,11 +4,11 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 const ROLES = [
-  { name: "portal_admin", scope: "portal" as const },
-  { name: "owner", scope: "client" as const },
-  { name: "client_manager", scope: "client" as const },
-  { name: "project_manager", scope: "worker" as const },
-  { name: "executor", scope: "worker" as const },
+  { name: "employee_admin", scope: "worker" as const },
+  { name: "employee_manager", scope: "worker" as const },
+  { name: "employee_executor", scope: "worker" as const },
+  { name: "client_owner", scope: "client" as const },
+  { name: "client_worker", scope: "client" as const },
 ];
 
 async function main() {

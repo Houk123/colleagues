@@ -27,3 +27,12 @@ export async function createPortalService(portalId: string, input: CreateService
   const { data } = await api.post<{ service: PortalService }>(`/portals/${portalId}/services`, input);
   return data.service;
 }
+
+export async function updatePortalService(portalId: string, serviceId: string, input: Partial<CreateServiceInput>): Promise<PortalService> {
+  const { data } = await api.patch<{ service: PortalService }>(`/portals/${portalId}/services/${serviceId}`, input);
+  return data.service;
+}
+
+export async function deletePortalService(portalId: string, serviceId: string): Promise<void> {
+  await api.delete(`/portals/${portalId}/services/${serviceId}`);
+}

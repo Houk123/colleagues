@@ -5,6 +5,8 @@ import {
   getProject,
   getProjectBySlug,
   addMember,
+  updateProject,
+  deleteProject,
   listPhases,
   createPhase,
   listProjectServices,
@@ -20,6 +22,8 @@ router.post("/", requireAuth, createProject);
 router.get("/", requireAuth, listProjects);
 router.get("/by-slug", requireAuth, getProjectBySlug);
 router.get("/:id", requireAuth, getProject);
+router.patch("/:id", requireAuth, updateProject);
+router.delete("/:id", requireAuth, deleteProject);
 router.post("/:id/members", requireAuth, addMember);
 
 router.get("/:id/phases", requireAuth, listPhases);

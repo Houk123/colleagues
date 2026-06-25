@@ -54,7 +54,7 @@ export async function createUser(
   }
 }
 
-export async function listPortalUsers(req: AuthRequest, res: Response): Promise<void> {
+export async function listPortalEmployees(req: AuthRequest, res: Response): Promise<void> {
   try {
     const portalId = req.query.portalId as string | undefined;
     if (!portalId) {
@@ -66,26 +66,66 @@ export async function listPortalUsers(req: AuthRequest, res: Response): Promise<
       res.status(404).json({ error: "Portal not found" });
       return;
     }
+
     const userIds = new Set<string>([portal.ownerId]);
-    const roles = await prisma.userRole.findMany({
+    const roleUsers = await prisma.userRole.findMany({
       where: { contextId: portalId },
       select: { userId: true },
     });
-    roles.forEach((r) => userIds.add(r.userId));
-    const orgMembers = await prisma.userOrganization.findMany({
-      where: { organization: { portalId } },
+    roleUsers.forEach((r) => userIds.add(r.userId));
+    const deptMembers = await prisma.userDepartment.findMany({
+      where: { department: { portalId } },
       select: { userId: true },
     });
-    orgMembers.forEach((o) => userIds.add(o.userId));
+    deptMembers.forEach((d) => userIds.add(d.userId));
 
     const users = await prisma.user.findMany({
-      where: { id: { in: Array.from(userIds) } },
+      where: {
+        id: { in: Array.from(userIds) },
+        workerProfile: { isNot: null },
+      },
       select: { id: true, email: true, name: true, avatar: true },
       orderBy: { name: "asc" },
     });
     res.status(200).json({ users });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to list portal users";
+    const message = err instanceof Error ? err.message : "Failed to list portal employees";
+    res.status(400).json({ error: message });
+  }
+}
+
+export async function listPortalClients(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const portalId = req.query.portalId as string | undefined;
+    if (!portalId) {
+      res.status(400).json({ error: "portalId is required" });
+      return;
+    }
+    const portal = await prisma.portal.findUnique({ where: { id: portalId } });
+    if (!portal) {
+      res.status(404).json({ error: "Portal not found" });
+      return;
+    }
+
+    const clientProfiles = await prisma.clientProfile.findMany({
+      where: {
+        OR: [
+          { organization: { portalId } },
+          { user: { userProjects: { some: { project: { portalId } } } } },
+        ],
+      },
+      select: { userId: true },
+    });
+    const userIds = clientProfiles.map((c) => c.userId);
+
+    const users = await prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, email: true, name: true, avatar: true },
+      orderBy: { name: "asc" },
+    });
+    res.status(200).json({ users });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to list portal clients";
     res.status(400).json({ error: message });
   }
 }
@@ -93,7 +133,7 @@ export async function listPortalUsers(req: AuthRequest, res: Response): Promise<
 export async function createPortalUser(req: AuthRequest, res: Response): Promise<void> {
   try {
     const creatorId = req.user!.userId;
-    const { email, name, password, portalId, roleId, organizationId, departmentId, projectAssignments } = req.body;
+    const { email, name, password, portalId, roleId, organizationIds, clientOrganizationRoles, organizationId, departmentId, projectAssignments } = req.body;
     if (!email || !name || !password || !portalId || !roleId) {
       res.status(400).json({ error: "email, name, password, portalId and roleId are required" });
       return;
@@ -104,7 +144,8 @@ export async function createPortalUser(req: AuthRequest, res: Response): Promise
       password,
       portalId,
       roleId,
-      organizationId,
+      organizationIds: organizationIds ?? (organizationId ? [organizationId] : undefined),
+      clientOrganizationRoles,
       departmentId,
       projectAssignments,
     });
@@ -123,23 +164,36 @@ export async function listCreatableRoles(req: AuthRequest, res: Response): Promi
       res.status(400).json({ error: "portalId is required" });
       return;
     }
-    const allRoles = await prisma.role.findMany({ orderBy: { name: "asc" } });
+    const allowedRoleNames = new Set([
+      "employee_admin",
+      "employee_manager",
+      "employee_executor",
+      "client_owner",
+      "client_worker",
+    ]);
+    const allRoles = await prisma.role.findMany({
+      where: { name: { in: Array.from(allowedRoleNames) } },
+      orderBy: { name: "asc" },
+    });
+
     const portal = await prisma.portal.findUnique({ where: { id: portalId } });
     if (portal?.ownerId === userId) {
       res.status(200).json({ roles: allRoles });
       return;
     }
+
     const creatorRoles = await userManagementService.getUserRolesInPortal(userId, portalId);
     const creatorHasPower = creatorRoles.some((ur) =>
-      ["portal_admin", "portal_manager", "worker_admin", "worker_manager"].includes(ur.role.name.toLowerCase())
+      allowedRoleNames.has(ur.role.name.toLowerCase()) && ur.role.name.toLowerCase().startsWith("employee_")
     );
     if (creatorHasPower) {
       res.status(200).json({ roles: allRoles });
       return;
     }
-    const creatorIsClient = creatorRoles.length > 0 && creatorRoles.every((ur) => ur.role.name.toLowerCase().includes("client"));
+
+    const creatorIsClient = creatorRoles.length > 0 && creatorRoles.every((ur) => ur.role.name.toLowerCase().startsWith("client_"));
     if (creatorIsClient) {
-      res.status(200).json({ roles: allRoles.filter((r: Role) => r.name.toLowerCase().includes("client")) });
+      res.status(200).json({ roles: allRoles.filter((r: Role) => r.name.toLowerCase().startsWith("client_")) });
       return;
     }
     res.status(200).json({ roles: [] });

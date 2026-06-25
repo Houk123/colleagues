@@ -1,9 +1,11 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
 import { rateLimit } from "./middleware/rateLimit.js";
+import { csrfInit, csrfProtection, csrfTokenEndpoint } from "./middleware/csrf.js";
 import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import portalRoutes from "./routes/portalRoutes.js";
@@ -44,8 +46,12 @@ app.use(
     credentials: true,
   }),
 );
+app.use(cookieParser());
 app.use(express.json());
 app.use(rateLimit);
+app.use(csrfInit);
+app.get("/api/csrf", csrfTokenEndpoint);
+app.use(csrfProtection);
 
 const publicPath = path.resolve(__dirname, "../tasks-frontend/dist");
 app.use(express.static(publicPath));

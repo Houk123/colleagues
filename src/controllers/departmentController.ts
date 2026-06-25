@@ -56,3 +56,30 @@ export async function addDepartmentMember(req: AuthRequest, res: Response): Prom
     res.status(400).json({ error: message });
   }
 }
+
+export async function updateDepartment(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const { name, description, managerId } = req.body;
+    const department = await departmentService.updateDepartment(id, {
+      name,
+      description,
+      managerId,
+    });
+    res.status(200).json({ department });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to update department";
+    res.status(400).json({ error: message });
+  }
+}
+
+export async function deleteDepartment(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    await departmentService.deleteDepartment(id);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to delete department";
+    res.status(400).json({ error: message });
+  }
+}

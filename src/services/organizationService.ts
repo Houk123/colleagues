@@ -83,3 +83,36 @@ export async function addMember(organizationId: string, userId: string, role: "o
     },
   });
 }
+
+export interface UpdateOrganizationInput {
+  name?: string;
+  slug?: string;
+  description?: string;
+  billingEmail?: string;
+  billingAddress?: string;
+}
+
+export async function updateOrganization(id: string, input: UpdateOrganizationInput) {
+  const existing = await prisma.organization.findUnique({ where: { id } });
+  if (!existing) {
+    throw new Error("Organization not found");
+  }
+  return prisma.organization.update({
+    where: { id },
+    data: {
+      name: input.name,
+      slug: input.slug,
+      description: input.description,
+      billingEmail: input.billingEmail,
+      billingAddress: input.billingAddress,
+    },
+  });
+}
+
+export async function deleteOrganization(id: string) {
+  const existing = await prisma.organization.findUnique({ where: { id } });
+  if (!existing) {
+    throw new Error("Organization not found");
+  }
+  return prisma.organization.delete({ where: { id } });
+}

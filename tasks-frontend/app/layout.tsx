@@ -1,14 +1,19 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Box } from "@chakra-ui/react";
 import { Provider } from "./provider";
 import { ClientProviders } from "./client-providers";
 import { AppHeader } from "@/widgets/AppHeader";
+import { Footer } from "@/widgets/Footer";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://kollegi.ru"),
   title: "Коллеги — рабочее пространство для агентств и фрилансеров",
   description:
     "Управляйте порталами, проектами, задачами, финансами и коммуникациями в одной платформе. Бесплатно для команд до 5 человек.",
-  robots: "index, follow",
+  alternates: {
+    canonical: "https://kollegi.ru/",
+  },
   openGraph: {
     title: "Коллеги — рабочее пространство для агентств и фрилансеров",
     description:
@@ -32,11 +37,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" suppressHydrationWarning>
-      <body>
+      <body style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         <Provider>
           <ClientProviders>
             <AppHeader />
-            {children}
+            <Box flex="1" display="flex" flexDirection="column">
+              {children}
+            </Box>
+            <Footer />
           </ClientProviders>
         </Provider>
       </body>

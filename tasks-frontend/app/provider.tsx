@@ -3,6 +3,7 @@
 import { ChakraProvider, createSystem, defaultConfig } from "@chakra-ui/react";
 import type { PropsWithChildren } from "react";
 import { ColorModeProvider } from "@/shared/ui/color-mode";
+import { Toaster } from "@/shared/ui/toaster";
 
 const system = createSystem(defaultConfig, {
   globalCss: {
@@ -28,6 +29,9 @@ const system = createSystem(defaultConfig, {
 
 export const Provider = (props: PropsWithChildren) => (
   <ChakraProvider value={system}>
-    <ColorModeProvider>{props.children}</ColorModeProvider>
+    <ColorModeProvider>
+      {props.children}
+      <Toaster />
+    </ColorModeProvider>
   </ChakraProvider>
 );

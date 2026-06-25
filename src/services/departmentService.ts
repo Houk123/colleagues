@@ -46,3 +46,32 @@ export async function addDepartmentMember(
     },
   });
 }
+
+export interface UpdateDepartmentInput {
+  name?: string;
+  description?: string;
+  managerId?: string | null;
+}
+
+export async function updateDepartment(id: string, input: UpdateDepartmentInput) {
+  const existing = await prisma.department.findUnique({ where: { id } });
+  if (!existing) {
+    throw new Error("Department not found");
+  }
+  return prisma.department.update({
+    where: { id },
+    data: {
+      name: input.name,
+      description: input.description,
+      managerId: input.managerId,
+    },
+  });
+}
+
+export async function deleteDepartment(id: string) {
+  const existing = await prisma.department.findUnique({ where: { id } });
+  if (!existing) {
+    throw new Error("Department not found");
+  }
+  return prisma.department.delete({ where: { id } });
+}

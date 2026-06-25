@@ -90,3 +90,32 @@ export async function addMember(req: AuthRequest, res: Response): Promise<void> 
     res.status(400).json({ error: message });
   }
 }
+
+export async function updateOrganization(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const { name, slug, description, billingEmail, billingAddress } = req.body;
+    const organization = await organizationService.updateOrganization(id, {
+      name,
+      slug,
+      description,
+      billingEmail,
+      billingAddress,
+    });
+    res.status(200).json({ organization });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to update organization";
+    res.status(400).json({ error: message });
+  }
+}
+
+export async function deleteOrganization(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    await organizationService.deleteOrganization(id);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to delete organization";
+    res.status(400).json({ error: message });
+  }
+}

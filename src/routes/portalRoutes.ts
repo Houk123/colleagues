@@ -5,6 +5,8 @@ import {
   getPortal,
   listPortalServices,
   createPortalService,
+  updatePortalService,
+  deletePortalService,
   searchPortals,
   createJoinRequest,
   cancelJoinRequest,
@@ -24,6 +26,8 @@ router.get("/requests", requireAuth, listJoinRequests);
 router.get("/:id", requireAuth, getPortal);
 router.get("/:id/services", requireAuth, listPortalServices);
 router.post("/:id/services", requireAuth, createPortalService);
+router.patch("/:id/services/:serviceId", requireAuth, updatePortalService);
+router.delete("/:id/services/:serviceId", requireAuth, deletePortalService);
 router.get("/:id/join", requireAuth, getMyJoinRequest);
 router.post("/:id/join", requireAuth, createJoinRequest);
 router.delete("/:id/join", requireAuth, cancelJoinRequest);

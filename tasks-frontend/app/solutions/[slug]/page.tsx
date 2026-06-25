@@ -21,13 +21,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
+  const url = `https://kollegi.ru/solutions/${solution.slug}`;
+
   return {
     title: solution.title,
     description: solution.description,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       title: solution.title,
       description: solution.description,
       type: "article",
+      url,
       images: [solution.ogImage],
     },
     twitter: {

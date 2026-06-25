@@ -46,18 +46,11 @@ export async function createProject(input: CreateProjectInput) {
   });
 }
 
-export async function getProjectsByPortal(portalId: string, organizationId?: string, memberUserId?: string) {
+export async function getProjectsByPortal(portalId: string, organizationId?: string) {
   return prisma.project.findMany({
     where: {
       portalId,
       ...(organizationId ? { organizationId } : {}),
-      ...(memberUserId
-        ? {
-            userProjects: {
-              some: { userId: memberUserId },
-            },
-          }
-        : {}),
     },
     orderBy: { createdAt: "desc" },
     include: {
@@ -114,6 +107,35 @@ export async function addMember(projectId: string, userId: string, roleId: strin
       roleId,
     },
   });
+}
+
+export interface UpdateProjectInput {
+  name?: string;
+  description?: string;
+  organizationId?: string;
+}
+
+export async function updateProject(id: string, input: UpdateProjectInput) {
+  const existing = await prisma.project.findUnique({ where: { id } });
+  if (!existing) {
+    throw new Error("Project not found");
+  }
+  return prisma.project.update({
+    where: { id },
+    data: {
+      name: input.name,
+      description: input.description,
+      organizationId: input.organizationId,
+    },
+  });
+}
+
+export async function deleteProject(id: string) {
+  const existing = await prisma.project.findUnique({ where: { id } });
+  if (!existing) {
+    throw new Error("Project not found");
+  }
+  return prisma.project.delete({ where: { id } });
 }
 
 export async function getProjectPhases(projectId: string) {

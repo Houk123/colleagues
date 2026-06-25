@@ -101,6 +101,52 @@ export async function createPortalService(req: AuthRequest, res: Response): Prom
   }
 }
 
+export async function updatePortalService(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const serviceId = Array.isArray(req.params.serviceId) ? req.params.serviceId[0] : req.params.serviceId;
+    const { name, description, pricePerHour, currency } = req.body;
+    let portal = await portalService.getPortalById(id);
+    if (!portal) {
+      portal = await portalService.getPortalBySlug(id);
+    }
+    if (!portal) {
+      res.status(404).json({ error: "Portal not found" });
+      return;
+    }
+    const service = await portalService.updateService(serviceId, portal.id, {
+      name,
+      description,
+      pricePerHour,
+      currency,
+    });
+    res.status(200).json({ service });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to update service";
+    res.status(400).json({ error: message });
+  }
+}
+
+export async function deletePortalService(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const serviceId = Array.isArray(req.params.serviceId) ? req.params.serviceId[0] : req.params.serviceId;
+    let portal = await portalService.getPortalById(id);
+    if (!portal) {
+      portal = await portalService.getPortalBySlug(id);
+    }
+    if (!portal) {
+      res.status(404).json({ error: "Portal not found" });
+      return;
+    }
+    await portalService.deleteService(serviceId, portal.id);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to delete service";
+    res.status(400).json({ error: message });
+  }
+}
+
 export async function searchPortals(req: AuthRequest, res: Response): Promise<void> {
   try {
     const query = req.query.q as string | undefined;

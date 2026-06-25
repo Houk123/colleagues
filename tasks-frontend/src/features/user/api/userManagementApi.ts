@@ -19,7 +19,8 @@ export async function createPortalUser(input: {
   password: string;
   portalId: string;
   roleId: string;
-  organizationId?: string;
+  organizationIds?: string[];
+  clientOrganizationRoles?: { organizationId: string; roleId: string }[];
   departmentId?: string;
   projectAssignments?: { projectId: string; roleId: string }[];
 }): Promise<CreatedUser> {
@@ -41,8 +42,15 @@ export interface PortalUser {
   avatar: string | null;
 }
 
-export async function fetchPortalUsers(portalId: string): Promise<PortalUser[]> {
-  const { data } = await api.get<{ users: PortalUser[] }>("/users/portal", {
+export async function fetchPortalEmployees(portalId: string): Promise<PortalUser[]> {
+  const { data } = await api.get<{ users: PortalUser[] }>("/users/portal/employees", {
+    params: { portalId },
+  });
+  return data.users;
+}
+
+export async function fetchPortalClients(portalId: string): Promise<PortalUser[]> {
+  const { data } = await api.get<{ users: PortalUser[] }>("/users/portal/clients", {
     params: { portalId },
   });
   return data.users;

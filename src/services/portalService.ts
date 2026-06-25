@@ -26,7 +26,7 @@ export async function createPortal(input: CreatePortalInput) {
     });
 
     const adminRole = await tx.role.findUnique({
-      where: { name: "portal_admin" },
+      where: { name: "employee_admin" },
     });
     if (adminRole) {
       await tx.userRole.create({
@@ -124,6 +124,43 @@ export async function createService(input: CreateServiceInput) {
       pricePerHour: input.pricePerHour,
       currency: input.currency ?? "RUB",
     },
+  });
+}
+
+export interface UpdateServiceInput {
+  name?: string;
+  description?: string;
+  pricePerHour?: number;
+  currency?: string;
+}
+
+export async function updateService(serviceId: string, portalId: string, input: UpdateServiceInput) {
+  const service = await prisma.service.findFirst({
+    where: { id: serviceId, portalId },
+  });
+  if (!service) {
+    throw new Error("Service not found");
+  }
+  return prisma.service.update({
+    where: { id: serviceId },
+    data: {
+      name: input.name,
+      description: input.description,
+      pricePerHour: input.pricePerHour,
+      currency: input.currency,
+    },
+  });
+}
+
+export async function deleteService(serviceId: string, portalId: string) {
+  const service = await prisma.service.findFirst({
+    where: { id: serviceId, portalId },
+  });
+  if (!service) {
+    throw new Error("Service not found");
+  }
+  return prisma.service.delete({
+    where: { id: serviceId },
   });
 }
 
