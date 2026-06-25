@@ -36,10 +36,10 @@ export function useAnimeReveal<T extends HTMLElement>(options: UseAnimeRevealOpt
           if (entry.isIntersecting) {
             animate(targets, {
               opacity: [0, 1],
-              translateY: [y, 0],
+              y: [y, 0],
               duration: 600,
               delay: staggerAmount > 0 ? stagger(staggerAmount, { start: delay }) : delay,
-              easing: "easeOutCubic",
+              ease: "outCubic",
             });
             if (once) {
               observer.unobserve(element);
@@ -61,10 +61,10 @@ export function useAnimeMount(childrenSelector: string, delay = 0, staggerAmount
   useEffect(() => {
     animate(childrenSelector, {
       opacity: [0, 1],
-      translateY: [24, 0],
+      y: [24, 0],
       duration: 500,
       delay: stagger(staggerAmount, { start: delay }),
-      easing: "easeOutCubic",
+      ease: "outCubic",
     });
   }, [childrenSelector, delay, staggerAmount]);
 }

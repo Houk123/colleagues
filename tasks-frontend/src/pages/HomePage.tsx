@@ -190,33 +190,34 @@ function useScrollReveal<T extends HTMLElement>(threshold = 0.15) {
     const element = ref.current;
     if (!element) return;
 
-    const children = element.dataset.revealChildren === "true" ? Array.from(element.children) : element;
+    const children = element.dataset.revealChildren === "true" ? Array.from(element.children) : [element];
     const y = Number(element.dataset.revealY || "30");
     const delay = Number(element.dataset.revealDelay || "0");
     const staggerMs = Number(element.dataset.revealStagger || "0");
 
-    element.style.opacity = "1";
-    if (Array.isArray(children)) {
-      children.forEach((child) => {
-        (child as HTMLElement).style.opacity = "0";
-        (child as HTMLElement).style.transform = `translateY(${y}px)`;
-      });
-    } else {
-      children.style.opacity = "0";
-      children.style.transform = `translateY(${y}px)`;
-    }
+    children.forEach((child) => {
+      (child as HTMLElement).style.opacity = "0";
+      (child as HTMLElement).style.transform = `translateY(${y}px)`;
+    });
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            animate(children, {
-              opacity: [0, 1],
-              translateY: [y, 0],
-              duration: 600,
-              delay: staggerMs > 0 ? stagger(staggerMs, { start: delay }) : delay,
-              easing: "easeOutCubic",
-            });
+            try {
+              animate(children, {
+                opacity: [0, 1],
+                y: [y, 0],
+                duration: 600,
+                delay: staggerMs > 0 ? stagger(staggerMs, { start: delay }) : delay,
+                ease: "outCubic",
+              });
+            } catch {
+              children.forEach((child) => {
+                (child as HTMLElement).style.opacity = "1";
+                (child as HTMLElement).style.transform = "translateY(0)";
+              });
+            }
             observer.unobserve(element);
           }
         });
@@ -255,22 +256,30 @@ export default function HomePage() {
       (el as HTMLElement).style.opacity = "0";
       (el as HTMLElement).style.transform = "translateY(24px)";
     });
-    animate(elements, {
-      opacity: [0, 1],
-      translateY: [24, 0],
-      duration: 600,
-      delay: stagger(100, { start: 100 }),
-      easing: "easeOutCubic",
-    });
+    try {
+      animate(elements, {
+        opacity: [0, 1],
+        y: [24, 0],
+        duration: 600,
+        delay: stagger(100, { start: 100 }),
+        ease: "outCubic",
+      });
+    } catch {
+      elements.forEach((el) => {
+        (el as HTMLElement).style.opacity = "1";
+        (el as HTMLElement).style.transform = "translateY(0)";
+      });
+    }
   }, []);
 
   useEffect(() => {
     if (!mockupRef.current) return;
     animate(mockupRef.current, {
-      translateY: [0, -12, 0],
+      y: [0, -12, 0],
       duration: 5000,
       loop: true,
-      easing: "easeInOutSine",
+      alternate: true,
+      ease: "inOutSine",
     });
   }, []);
 
