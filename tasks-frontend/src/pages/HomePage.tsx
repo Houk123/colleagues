@@ -250,8 +250,8 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    if (!heroRef.current) return;
-    const elements = heroRef.current.querySelectorAll("[data-animate]");
+    if (!ready || !heroRef.current) return;
+    const elements = Array.from(heroRef.current.querySelectorAll("[data-animate]"));
     elements.forEach((el) => {
       (el as HTMLElement).style.opacity = "0";
       (el as HTMLElement).style.transform = "translateY(24px)";
@@ -270,18 +270,22 @@ export default function HomePage() {
         (el as HTMLElement).style.transform = "translateY(0)";
       });
     }
-  }, []);
+  }, [ready]);
 
   useEffect(() => {
-    if (!mockupRef.current) return;
-    animate(mockupRef.current, {
-      y: [0, -12, 0],
-      duration: 5000,
-      loop: true,
-      alternate: true,
-      ease: "inOutSine",
-    });
-  }, []);
+    if (!ready || !mockupRef.current) return;
+    try {
+      animate(mockupRef.current, {
+        y: [0, -12, 0],
+        duration: 5000,
+        loop: true,
+        alternate: true,
+        ease: "inOutSine",
+      });
+    } catch {
+      // ignore
+    }
+  }, [ready]);
 
   if (!ready) {
     return <HomeSkeleton />;
