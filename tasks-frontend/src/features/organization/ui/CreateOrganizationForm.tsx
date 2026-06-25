@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Box, Button, Input, Stack, Text } from "@chakra-ui/react";
-import { useCreateOrganization } from "../model/useOrganizations.js";
+import { useCreateOrganization } from "../model/useOrganizations";
 
 const schema = z.object({
   name: z.string().min(2, "Минимум 2 символа"),

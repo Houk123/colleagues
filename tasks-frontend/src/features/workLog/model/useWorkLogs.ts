@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createWorkLog, fetchWorkLogs, fetchWorkLogsByTask, type CreateWorkLogInput } from "../api/workLogApi.js";
+import { createWorkLog, fetchWorkLogs, fetchWorkLogsByTask, type CreateWorkLogInput } from "../api/workLogApi";
 
 export function useWorkLogs(projectId: string) {
   return useQuery({

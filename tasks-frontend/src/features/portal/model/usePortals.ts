@@ -10,7 +10,7 @@ import {
   acceptJoinRequest,
   rejectJoinRequest,
   type CreatePortalInput,
-} from "../api/portalApi.js";
+} from "../api/portalApi";
 
 export function usePortals() {
   return useQuery({

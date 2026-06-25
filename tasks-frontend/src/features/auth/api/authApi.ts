@@ -1,5 +1,5 @@
-import api from "@/shared/api/axios.js";
-import type { AuthUser } from "@/entities/user/model/authStore.js";
+import api from "@/shared/api/axios";
+import type { AuthUser } from "@/entities/user/model/authStore";
 
 export interface LoginInput {
   email: string;

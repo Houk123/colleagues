@@ -4,7 +4,7 @@ import {
   createDepartment,
   addDepartmentMember,
   type CreateDepartmentInput,
-} from "../api/departmentApi.js";
+} from "../api/departmentApi";
 
 export function useDepartments(portalId: string) {
   return useQuery({

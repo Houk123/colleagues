@@ -27,9 +27,9 @@ import {
   useCreateTag,
   useAddTagToTask,
   useRemoveTagFromTask,
-} from "@/features/task/model/useTasks.js";
-import { usePortalUsers } from "@/features/user/model/useUserManagement.js";
-import type { Task } from "@/features/task/api/taskApi.js";
+} from "@/features/task/model/useTasks";
+import { usePortalUsers } from "@/features/user/model/useUserManagement";
+import type { Task } from "@/features/task/api/taskApi";
 
 const COLUMNS: { key: Task["status"]; label: string; color: string }[] = [
   { key: "todo", label: "К выполнению", color: "gray" },

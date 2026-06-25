@@ -10,11 +10,11 @@ import {
   NativeSelect,
   Checkbox,
 } from "@chakra-ui/react";
-import { useCreatableRoles, useCreatePortalUser } from "@/features/user/model/useUserManagement.js";
-import { useOrganizations } from "@/features/organization/model/useOrganizations.js";
-import { useDepartments } from "@/features/department/model/useDepartments.js";
-import { useProjects } from "@/features/project/model/useProjects.js";
-import { useRoles } from "@/features/role/model/useRoles.js";
+import { useCreatableRoles, useCreatePortalUser } from "@/features/user/model/useUserManagement";
+import { useOrganizations } from "@/features/organization/model/useOrganizations";
+import { useDepartments } from "@/features/department/model/useDepartments";
+import { useProjects } from "@/features/project/model/useProjects";
+import { useRoles } from "@/features/role/model/useRoles";
 
 const ROLE_LABELS: Record<string, string> = {
   portal_admin: "Администратор портала",

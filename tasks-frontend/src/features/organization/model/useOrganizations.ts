@@ -3,7 +3,7 @@ import {
   createOrganization,
   fetchOrganizations,
   type CreateOrganizationInput,
-} from "../api/organizationApi.js";
+} from "../api/organizationApi";
 
 export function useOrganizations(portalId: string) {
   return useQuery({

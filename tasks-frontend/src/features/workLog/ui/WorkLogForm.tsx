@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Box, Button, Input, NativeSelect, Stack, Text } from "@chakra-ui/react";
-import { useCreateWorkLog } from "../model/useWorkLogs.js";
+import { useCreateWorkLog } from "../model/useWorkLogs";
 
 const schema = z.object({
   hours: z.number().min(0),

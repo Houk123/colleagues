@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createInvite, fetchInvites, acceptInvite, type CreateInviteInput } from "../api/inviteApi.js";
+import { createInvite, fetchInvites, acceptInvite, type CreateInviteInput } from "../api/inviteApi";
 
 export function useInvites(portalId: string) {
   return useQuery({

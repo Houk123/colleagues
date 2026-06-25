@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchAuditLogs } from "../api/auditLogApi.js";
+import { fetchAuditLogs } from "../api/auditLogApi";
 
 export function useAuditLogs(params?: {
   entityType?: string;

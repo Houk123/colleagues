@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchProjectRoom, fetchMessages, sendMessage } from "../api/chatApi.js";
+import { fetchProjectRoom, fetchMessages, sendMessage } from "../api/chatApi";
 
 export function useProjectRoom(projectId: string) {
   return useQuery({

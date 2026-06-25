@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchSubscriptions, subscribe, unsubscribe } from "../api/subscriptionApi.js";
+import { fetchSubscriptions, subscribe, unsubscribe } from "../api/subscriptionApi";
 
 export function useSubscriptions() {
   return useQuery({

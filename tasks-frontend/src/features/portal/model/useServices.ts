@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchPortalServices, createPortalService, type CreateServiceInput } from "../api/serviceApi.js";
+import { fetchPortalServices, createPortalService, type CreateServiceInput } from "../api/serviceApi";
 
 export function usePortalServices(portalId: string) {
   return useQuery({

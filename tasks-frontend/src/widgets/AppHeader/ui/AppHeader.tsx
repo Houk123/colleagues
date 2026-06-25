@@ -1,16 +1,18 @@
-import { useNavigate, useLocation } from "react-router-dom";
+"use client";
+
+import { useRouter, usePathname } from "next/navigation";
 import { Box, HStack, Text, Button, Avatar, Menu, Portal } from "@chakra-ui/react";
 import NotificationBell from "@/features/notification/ui/NotificationBell";
 import { useLogout } from "@/features/auth/model/useAuth";
 import { useAuthStore } from "@/entities/user/model/authStore";
 
 export default function AppHeader() {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const router = useRouter();
+  const pathname = usePathname();
   const logout = useLogout();
   const user = useAuthStore((s) => s.user);
 
-  const isAuthPage = location.pathname === "/login" || location.pathname === "/register" || location.pathname.startsWith("/invites/");
+  const isAuthPage = pathname === "/login" || pathname === "/register" || pathname.startsWith("/invites/");
 
   if (isAuthPage) return null;
 
@@ -32,7 +34,7 @@ export default function AppHeader() {
         h="56px"
         justify="space-between"
       >
-        <HStack gap="3" cursor="pointer" onClick={() => navigate("/")}>
+        <HStack gap="3" cursor="pointer" onClick={() => router.push("/")}>
           <Box
             w="32px"
             h="32px"

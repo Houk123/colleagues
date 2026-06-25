@@ -4,8 +4,8 @@ import {
   fetchUnreadCount,
   markAsRead,
   markAllAsRead,
-} from "../api/notificationApi.js";
-import { useAuthStore } from "@/entities/user/model/authStore.js";
+} from "../api/notificationApi";
+import { useAuthStore } from "@/entities/user/model/authStore";
 
 export function useNotifications() {
   const token = useAuthStore((s) => s.token);

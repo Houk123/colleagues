@@ -16,7 +16,7 @@ import {
   type CreateTaskInput,
   type UpdateTaskInput,
   type Task,
-} from "../api/taskApi.js";
+} from "../api/taskApi";
 
 export function useTasks(projectId: string) {
   return useQuery({

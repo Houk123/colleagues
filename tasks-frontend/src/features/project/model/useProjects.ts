@@ -14,7 +14,7 @@ import {
   type CreatePhaseInput,
   type AddProjectServiceInput,
   type CreateTransactionInput,
-} from "../api/projectApi.js";
+} from "../api/projectApi";
 
 export function useProjects(portalId: string, organizationId?: string) {
   return useQuery({

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuthStore, type AuthUser } from "@/entities/user/model/authStore.js";
-import { login, register, me } from "@/features/auth/api/authApi.js";
+import { useAuthStore, type AuthUser } from "@/entities/user/model/authStore";
+import { login, register, me } from "@/features/auth/api/authApi";
 
 export type LoginInput = Parameters<typeof login>[0];
 export type RegisterInput = Parameters<typeof register>[0];

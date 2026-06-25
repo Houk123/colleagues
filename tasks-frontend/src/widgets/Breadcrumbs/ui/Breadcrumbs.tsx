@@ -1,4 +1,6 @@
-import { useNavigate, useParams } from "react-router-dom";
+"use client";
+
+import { useParams, useRouter } from "next/navigation";
 import { useQueries } from "@tanstack/react-query";
 import { HStack, Text, Button } from "@chakra-ui/react";
 import { fetchPortalBySlug } from "@/features/portal/api/portalApi";
@@ -12,7 +14,7 @@ interface Crumb {
 }
 
 export default function Breadcrumbs() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { portalSlug, orgSlug, projectSlug, taskId } = useParams<{
     portalSlug?: string;
     orgSlug?: string;
@@ -92,7 +94,7 @@ export default function Breadcrumbs() {
                 h="auto"
                 fontWeight="medium"
                 color="gray.500"
-                onClick={() => navigate(crumb.path!)}
+                onClick={() => router.push(crumb.path!)}
               >
                 {crumb.label}
               </Button>

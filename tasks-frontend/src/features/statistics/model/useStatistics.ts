@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchProjectStatistics, fetchTaskStatistics, fetchUserStatistics } from "../api/statisticsApi.js";
+import { fetchProjectStatistics, fetchTaskStatistics, fetchUserStatistics } from "../api/statisticsApi";
 
 export function useProjectStatistics(projectId: string) {
   return useQuery({

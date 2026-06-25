@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createAttachment, fetchAttachmentsByTask, deleteAttachment, uploadFile, type CreateAttachmentInput } from "../api/attachmentApi.js";
+import { createAttachment, fetchAttachmentsByTask, deleteAttachment, uploadFile, type CreateAttachmentInput } from "../api/attachmentApi";
 
 export function useAttachmentsByTask(taskId: string) {
   return useQuery({

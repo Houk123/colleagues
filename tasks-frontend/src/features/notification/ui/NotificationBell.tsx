@@ -8,9 +8,9 @@ import {
   Card,
 } from "@chakra-ui/react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useNotifications, useUnreadCount, useMarkAsRead, useMarkAllAsRead } from "../model/useNotifications.js";
-import { useAuthStore } from "@/entities/user/model/authStore.js";
-import { useSocket } from "@/shared/hooks/useSocket.js";
+import { useNotifications, useUnreadCount, useMarkAsRead, useMarkAllAsRead } from "../model/useNotifications";
+import { useAuthStore } from "@/entities/user/model/authStore";
+import { useSocket } from "@/shared/hooks/useSocket";
 
 export default function NotificationBell() {
   const { data: notifications } = useNotifications();

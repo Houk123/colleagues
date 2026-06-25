@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Box, Stack, Text, Input, Button, Card } from "@chakra-ui/react";
-import { useMessages, useSendMessage } from "@/features/chat/model/useChat.js";
-import { useSocket } from "@/shared/hooks/useSocket.js";
-import { useAuthStore } from "@/entities/user/model/authStore.js";
-import type { ChatMessage } from "@/features/chat/api/chatApi.js";
+import { useMessages, useSendMessage } from "@/features/chat/model/useChat";
+import { useSocket } from "@/shared/hooks/useSocket";
+import { useAuthStore } from "@/entities/user/model/authStore";
+import type { ChatMessage } from "@/features/chat/api/chatApi";
 
 export default function ProjectChat({ roomId }: { roomId: string }) {
   const { data: messages } = useMessages(roomId);

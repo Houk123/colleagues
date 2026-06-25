@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createPortalUser, fetchCreatableRoles, fetchPortalUsers, fetchUserRoles, assignRole } from "../api/userManagementApi.js";
+import { createPortalUser, fetchCreatableRoles, fetchPortalUsers, fetchUserRoles, assignRole } from "../api/userManagementApi";
 
 export function useCreatableRoles(portalId: string) {
   return useQuery({

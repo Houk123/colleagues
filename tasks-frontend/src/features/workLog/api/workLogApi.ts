@@ -1,4 +1,4 @@
-import api from "@/shared/api/axios.js";
+import api from "@/shared/api/axios";
 
 export interface WorkLog {
   id: string;
