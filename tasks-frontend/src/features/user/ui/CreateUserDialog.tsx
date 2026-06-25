@@ -264,7 +264,7 @@ export default function CreateUserDialog({
                       </Box>
                       <Button
                         size="sm"
-                        colorPalette="brand"
+                        colorPalette="blue"
                         disabled={!selectedProjectId || !selectedProjectRoleId}
                         onClick={() => {
                           setProjectAssignments([
@@ -281,7 +281,7 @@ export default function CreateUserDialog({
                   </Stack>
                 </Box>
 
-                <Button colorPalette="brand" loading={createUser.isPending} onClick={handleSubmit}>
+                <Button colorPalette="blue" loading={createUser.isPending} onClick={handleSubmit}>
                   Создать пользователя
                 </Button>
               </Stack>

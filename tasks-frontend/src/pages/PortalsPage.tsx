@@ -24,10 +24,10 @@ export default function PortalsPage() {
       <Stack direction="row" justify="space-between" align="center" mb="8">
         <Heading>Ваши порталы</Heading>
         <Stack direction="row" gap="3">
-          <Button onClick={() => setOpen(true)} colorPalette="brand">
+          <Button onClick={() => setOpen(true)} colorPalette="blue">
             + Создать портал
           </Button>
-          <Button onClick={() => navigate("/join-portal")} variant="outline" colorPalette="brand">
+          <Button onClick={() => navigate("/join-portal")} variant="outline" colorPalette="blue">
             Вступить в портал
           </Button>
           <Button onClick={() => navigate("/portal-requests")} variant="outline">
@@ -45,14 +45,14 @@ export default function PortalsPage() {
             key={portal.id}
             p="5"
             cursor="pointer"
-            _hover={{ borderColor: "brand.400", boxShadow: "md", transform: "translateY(-2px)" }}
+            _hover={{ borderColor: "blue.400", boxShadow: "md", transform: "translateY(-2px)" }}
             transition="all 0.2s"
             borderTop="3px solid"
-            borderColor="brand.500"
+            borderColor="blue.500"
             onClick={() => navigate(`/portals/${portal.slug}`)}
           >
             <Card.Body>
-              <Heading size="md" color="brand.700">{portal.name}</Heading>
+              <Heading size="md" color="blue.700">{portal.name}</Heading>
               <Text color="gray.500" fontSize="sm" mt="1">/{portal.slug}</Text>
               {portal.description && <Text mt="3" color="gray.600" fontSize="sm">{portal.description}</Text>}
             </Card.Body>

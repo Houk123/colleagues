@@ -6,21 +6,18 @@ export type LoginInput = Parameters<typeof login>[0];
 export type RegisterInput = Parameters<typeof register>[0];
 
 export function useMe() {
-  const { setUser, setLoading, token } = useAuthStore();
+  const { setUser, token } = useAuthStore();
 
   return useQuery<AuthUser | null>({
     queryKey: ["me"],
     queryFn: async () => {
-      if (!token) {
-        setLoading(false);
-        return null;
-      }
+      if (!token) return null;
       const user = await me();
       setUser(user);
-      setLoading(false);
       return user;
     },
     enabled: !!token,
+    retry: false,
     staleTime: Infinity,
   });
 }

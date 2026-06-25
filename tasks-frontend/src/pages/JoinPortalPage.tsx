@@ -59,7 +59,7 @@ export default function JoinPortalPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          <Button type="submit" colorPalette="brand">Найти</Button>
+          <Button type="submit" colorPalette="blue">Найти</Button>
         </Stack>
       </form>
 
@@ -109,7 +109,7 @@ export default function JoinPortalPage() {
                       onChange={(e) => setMessage(e.target.value)}
                     />
                     <Button
-                      colorPalette="brand"
+                      colorPalette="blue"
                       loading={createRequest.isPending}
                       onClick={handleRequest}
                     >

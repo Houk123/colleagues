@@ -28,6 +28,7 @@ import WorkLogForm from "@/features/workLog/ui/WorkLogForm.js";
 import { useAttachmentsByTask, useCreateAttachment } from "@/features/attachment/model/useAttachments.js";
 import { useProjectStatistics } from "@/features/statistics/model/useStatistics.js";
 import { useAuthStore } from "@/entities/user/model/authStore.js";
+import { Breadcrumbs } from "@/widgets/Breadcrumbs";
 import { useSocket } from "@/shared/hooks/useSocket.js";
 
 export default function ProjectPage() {
@@ -134,14 +135,9 @@ export default function ProjectPage() {
   const balance = project?.wallet?.balance ? Number(project.wallet.balance) : 0;
   const isNegative = balance < 0;
 
-  const backUrl = `/portals/${portalSlug}/organizations/${orgSlug}`;
-
   return (
     <Box p="6">
-      <Button variant="ghost" onClick={() => navigate(backUrl)} mb="4">
-        ← Назад к проектам
-      </Button>
-
+      <Breadcrumbs />
       <Stack direction="row" justify="space-between" align="flex-start" mb="6">
         <Box>
           <Heading mb="1">{project?.name ?? "Загрузка..."}</Heading>
@@ -181,7 +177,7 @@ export default function ProjectPage() {
                 <Text>
                   {up.user.name || up.user.email} <Text as="span" color="gray.500">({up.user.email})</Text>
                 </Text>
-                <Badge colorPalette="brand">{up.role.name}</Badge>
+                <Badge colorPalette="blue">{up.role.name}</Badge>
               </Stack>
             ))}
           </Stack>
@@ -200,7 +196,7 @@ export default function ProjectPage() {
 
         <Tabs.Content value="tasks">
           <Stack gap="4" mt="4">
-            <Button onClick={() => setTaskOpen(true)} colorPalette="brand" w="fit-content">
+            <Button onClick={() => setTaskOpen(true)} colorPalette="blue" w="fit-content">
               + Создать задачу
             </Button>
             <KanbanBoard
@@ -214,7 +210,7 @@ export default function ProjectPage() {
 
         <Tabs.Content value="phases">
           <Stack gap="4" mt="4">
-            <Button onClick={() => setPhaseOpen(true)} colorPalette="brand" w="fit-content">
+            <Button onClick={() => setPhaseOpen(true)} colorPalette="blue" w="fit-content">
               + Добавить фазу
             </Button>
             <Grid templateColumns="repeat(auto-fill, minmax(300px, 1fr))" gap="4">
@@ -223,7 +219,7 @@ export default function ProjectPage() {
                   <Card.Body>
                     <Stack direction="row" justify="space-between" align="center" mb="2">
                       <Heading size="md">{phase.name}</Heading>
-                      {phase.isCurrent && <Badge colorPalette="brand">Текущая</Badge>}
+                      {phase.isCurrent && <Badge colorPalette="blue">Текущая</Badge>}
                     </Stack>
                     <Text fontSize="sm" color="gray.500">
                       {phase.pricingMode === "fixed_budget"
@@ -246,7 +242,7 @@ export default function ProjectPage() {
         <Tabs.Content value="services">
           <Stack gap="4" mt="4">
             <Stack direction="row" gap="2">
-              <Button onClick={() => setServiceOpen(true)} colorPalette="brand" w="fit-content">
+              <Button onClick={() => setServiceOpen(true)} colorPalette="blue" w="fit-content">
                 + Подключить услугу
               </Button>
               <Button onClick={() => setPortalServiceOpen(true)} colorPalette="gray" variant="outline" w="fit-content">
@@ -522,7 +518,7 @@ export default function ProjectPage() {
                         ))}
                       </NativeSelect.Field>
                     </NativeSelect.Root>
-                    <Button type="submit" loading={createTask.isPending} colorPalette="brand">Создать</Button>
+                    <Button type="submit" loading={createTask.isPending} colorPalette="blue">Создать</Button>
                   </Stack>
                 </form>
               </Dialog.Body>
@@ -611,7 +607,7 @@ export default function ProjectPage() {
                       >
                         <Stack direction="row" gap="2">
                           <Input name="commentText" placeholder="Написать комментарий..." required />
-                          <Button type="submit" loading={createComment.isPending} size="sm" colorPalette="brand">Отправить</Button>
+                          <Button type="submit" loading={createComment.isPending} size="sm" colorPalette="blue">Отправить</Button>
                         </Stack>
                       </form>
                       <Heading size="sm">Файлы</Heading>
@@ -648,7 +644,7 @@ export default function ProjectPage() {
                             <Input placeholder="Название файла" value={fileName} onChange={(e) => setFileName(e.target.value)} required />
                             <Input placeholder="URL файла" value={fileUrl} onChange={(e) => setFileUrl(e.target.value)} required />
                           </Stack>
-                          <Button type="submit" loading={createAttachment.isPending} size="sm" colorPalette="brand">Прикрепить файл</Button>
+                          <Button type="submit" loading={createAttachment.isPending} size="sm" colorPalette="blue">Прикрепить файл</Button>
                         </Stack>
                       </form>
                     </Stack>
@@ -726,7 +722,7 @@ function PhaseForm({
             )}
           </>
         )}
-        <Button type="submit" loading={createPhase.isPending} colorPalette="brand">Создать</Button>
+        <Button type="submit" loading={createPhase.isPending} colorPalette="blue">Создать</Button>
       </Stack>
     </form>
   );
@@ -773,7 +769,7 @@ function AddServiceForm({
         </NativeSelect.Root>
         <Input placeholder="Цена для проекта (необязательно)" type="number" value={customPrice} onChange={(e) => setCustomPrice(e.target.value)} />
         <Input placeholder="Скидка % для проекта (необязательно)" type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} />
-        <Button type="submit" loading={addProjectService.isPending} colorPalette="brand">Подключить</Button>
+        <Button type="submit" loading={addProjectService.isPending} colorPalette="blue">Подключить</Button>
       </Stack>
     </form>
   );
@@ -807,7 +803,7 @@ function CreatePortalServiceForm({
         <Input placeholder="Название услуги" value={name} onChange={(e) => setName(e.target.value)} required />
         <Input placeholder="Описание" value={description} onChange={(e) => setDescription(e.target.value)} />
         <Input placeholder="Цена за час" type="number" value={price} onChange={(e) => setPrice(e.target.value)} required />
-        <Button type="submit" loading={createPortalService.isPending} colorPalette="brand">Создать</Button>
+        <Button type="submit" loading={createPortalService.isPending} colorPalette="blue">Создать</Button>
       </Stack>
     </form>
   );

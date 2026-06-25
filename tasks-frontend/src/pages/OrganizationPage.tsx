@@ -17,6 +17,7 @@ import { useProjects } from "@/features/project/model/useProjects.js";
 import { fetchPortalBySlug } from "@/features/portal/api/portalApi.js";
 import { fetchOrganizationBySlug } from "@/features/organization/api/organizationApi.js";
 import CreateProjectForm from "@/features/project/ui/CreateProjectForm.js";
+import { Breadcrumbs } from "@/widgets/Breadcrumbs";
 
 export default function OrganizationPage() {
   const { portalSlug, orgSlug } = useParams<{ portalSlug: string; orgSlug: string }>();
@@ -43,10 +44,7 @@ export default function OrganizationPage() {
 
   return (
     <Box p="6">
-      <Button variant="ghost" onClick={() => navigate(`/portals/${portalSlug}`)} mb="4">
-        ← Назад к организациям
-      </Button>
-
+      <Breadcrumbs />
       <Heading mb="2">
         {orgLoading ? "Загрузка..." : organization?.name ?? "Организация"}
       </Heading>
@@ -56,7 +54,7 @@ export default function OrganizationPage() {
 
       <Button
         onClick={() => setProjectOpen(true)}
-        colorPalette="brand"
+        colorPalette="blue"
         mb="6"
         disabled={!organization?.id}
       >

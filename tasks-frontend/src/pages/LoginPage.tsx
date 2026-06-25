@@ -50,7 +50,7 @@ export default function Login() {
             w="40px"
             h="40px"
             borderRadius="lg"
-            bgGradient="linear(to-br, brand.500, brand.700)"
+            bgGradient="linear(to-br, blue.500, blue.700)"
             display="flex"
             alignItems="center"
             justifyContent="center"
@@ -60,7 +60,7 @@ export default function Login() {
           >
             К
           </Box>
-          <Text textStyle="logo" fontSize="2xl">Коллеги</Text>
+          <Text fontSize="2xl" fontWeight="800" letterSpacing="-0.03em" color="blue.700">Коллеги</Text>
         </HStack>
         <Heading size="md" mb="6" textAlign="center" color="gray.700">Вход в систему</Heading>
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -73,7 +73,7 @@ export default function Login() {
               <Input placeholder="Пароль" type="password" size="lg" bg="gray.50" borderColor="gray.200" {...register("password")} />
               {errors.password && <Text color="red.500" fontSize="sm">{errors.password.message}</Text>}
             </Box>
-            <Button type="submit" loading={isSubmitting || login.isPending} colorPalette="brand" size="lg" w="full">
+            <Button type="submit" loading={isSubmitting || login.isPending} colorPalette="blue" size="lg" w="full">
               Войти
             </Button>
             {login.isError && (
@@ -82,7 +82,7 @@ export default function Login() {
           </Stack>
         </form>
         <Text mt="6" textAlign="center" fontSize="sm" color="gray.500">
-          Нет аккаунта? <Link href="/register" color="brand.600" fontWeight="medium">Зарегистрироваться</Link>
+          Нет аккаунта? <Link href="/register" color="blue.600" fontWeight="medium">Зарегистрироваться</Link>
         </Text>
       </Box>
     </Box>

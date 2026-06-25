@@ -22,6 +22,7 @@ import { useRoles } from "@/features/role/model/useRoles.js";
 import { fetchPortalBySlug } from "@/features/portal/api/portalApi.js";
 import CreateOrganizationForm from "@/features/organization/ui/CreateOrganizationForm.js";
 import CreateUserDialog from "@/features/user/ui/CreateUserDialog.js";
+import { Breadcrumbs } from "@/widgets/Breadcrumbs";
 
 export default function PortalPage() {
   const { portalSlug } = useParams<{ portalSlug: string }>();
@@ -67,9 +68,7 @@ export default function PortalPage() {
 
   return (
     <Box p="6">
-      <Button variant="ghost" onClick={() => navigate("/")} mb="4">
-        ← Назад к порталам
-      </Button>
+      <Breadcrumbs />
       <Stack direction="row" justify="space-between" align="center" mb="2">
         <Heading>
           {portalLoading ? "Загрузка..." : portal?.name ?? "Портал"}
@@ -83,7 +82,7 @@ export default function PortalPage() {
       </Text>
 
       <Stack direction="row" gap="3" mb="6" wrap="wrap">
-        <Button onClick={() => setOrgOpen(true)} colorPalette="brand">
+        <Button onClick={() => setOrgOpen(true)} colorPalette="blue">
           + Добавить организацию
         </Button>
         <Button onClick={() => setDeptOpen(true)} colorPalette="purple">

@@ -44,7 +44,7 @@ export default function CreateProjectForm({ portalId, organizationId, onSuccess 
         <Box>
           <Input placeholder="Описание (необязательно)" {...register("description")} />
         </Box>
-        <Button type="submit" loading={isSubmitting || createProject.isPending} colorPalette="brand">
+        <Button type="submit" loading={isSubmitting || createProject.isPending} colorPalette="blue">
           Создать проект
         </Button>
         {createProject.isError && (

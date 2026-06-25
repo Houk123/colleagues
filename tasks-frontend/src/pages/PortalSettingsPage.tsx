@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   Box,
@@ -18,6 +18,7 @@ import { fetchPortalBySlug } from "@/features/portal/api/portalApi.js";
 import { usePortalUsers, useUserRoles, useAssignRole } from "@/features/user/model/useUserManagement.js";
 import { useRoles } from "@/features/role/model/useRoles.js";
 import { useAuditLogs } from "@/features/auditLog/model/useAuditLogs.js";
+import { Breadcrumbs } from "@/widgets/Breadcrumbs";
 
 const ACTION_LABELS: Record<string, string> = {
   create: "Создание",
@@ -45,9 +46,7 @@ export default function PortalSettingsPage() {
 
   return (
     <Box p="6" maxW="900px" mx="auto">
-      <Button variant="ghost" onClick={() => navigate(`/portals/${portalSlug}`)} mb="4">
-        ← Назад к порталу
-      </Button>
+      <Breadcrumbs />
       <Heading size="lg" mb="6">Настройки портала</Heading>
 
       <Tabs.Root defaultValue="members">
@@ -132,7 +131,7 @@ function RoleManager({
         <Heading size="sm" mb="3">Роли в портале</Heading>
         <Stack gap="2" mb="4">
           {portalRoles.map((ur) => (
-            <Badge key={ur.id} colorPalette="brand">{ur.role.name}</Badge>
+            <Badge key={ur.id} colorPalette="blue">{ur.role.name}</Badge>
           ))}
           {portalRoles.length === 0 && <Text fontSize="sm" color="gray.500">Нет ролей</Text>}
         </Stack>
@@ -145,7 +144,7 @@ function RoleManager({
               ))}
             </NativeSelect.Field>
           </NativeSelect.Root>
-          <Button colorPalette="brand" size="sm" disabled={!selectedRoleId} onClick={handleAssign} loading={assignRole.isPending}>
+          <Button colorPalette="blue" size="sm" disabled={!selectedRoleId} onClick={handleAssign} loading={assignRole.isPending}>
             Назначить
           </Button>
         </Stack>

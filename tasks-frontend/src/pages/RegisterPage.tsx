@@ -51,7 +51,7 @@ export default function Register() {
             w="40px"
             h="40px"
             borderRadius="lg"
-            bgGradient="linear(to-br, brand.500, brand.700)"
+            bgGradient="linear(to-br, blue.500, blue.700)"
             display="flex"
             alignItems="center"
             justifyContent="center"
@@ -61,7 +61,7 @@ export default function Register() {
           >
             К
           </Box>
-          <Text textStyle="logo" fontSize="2xl">Коллеги</Text>
+          <Text fontSize="2xl" fontWeight="800" letterSpacing="-0.03em" color="blue.700">Коллеги</Text>
         </HStack>
         <Heading size="md" mb="6" textAlign="center" color="gray.700">Регистрация</Heading>
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -78,7 +78,7 @@ export default function Register() {
               <Input placeholder="Пароль" type="password" size="lg" bg="gray.50" borderColor="gray.200" {...register("password")} />
               {errors.password && <Text color="red.500" fontSize="sm">{errors.password.message}</Text>}
             </Box>
-            <Button type="submit" loading={isSubmitting || registerMutation.isPending} colorPalette="brand" size="lg" w="full">
+            <Button type="submit" loading={isSubmitting || registerMutation.isPending} colorPalette="blue" size="lg" w="full">
               Зарегистрироваться
             </Button>
             {registerMutation.isError && (
@@ -87,7 +87,7 @@ export default function Register() {
           </Stack>
         </form>
         <Text mt="6" textAlign="center" fontSize="sm" color="gray.500">
-          Уже есть аккаунт? <Link href="/login" color="brand.600" fontWeight="medium">Войти</Link>
+          Уже есть аккаунт? <Link href="/login" color="blue.600" fontWeight="medium">Войти</Link>
         </Text>
       </Box>
     </Box>

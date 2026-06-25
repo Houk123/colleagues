@@ -37,6 +37,7 @@ import WorkLogForm from "@/features/workLog/ui/WorkLogForm.js";
 import { useProjectServices } from "@/features/project/model/useProjects.js";
 import { useAttachmentsByTask, useUploadFile, useDeleteAttachment } from "@/features/attachment/model/useAttachments.js";
 import { useSubscriptions, useSubscribe, useUnsubscribe } from "@/features/subscription/model/useSubscriptions.js";
+import { Breadcrumbs } from "@/widgets/Breadcrumbs";
 
 const STATUS_LABELS: Record<string, string> = {
   todo: "К выполнению",
@@ -158,10 +159,7 @@ export default function TaskPage() {
 
   return (
     <Box p="6" maxW="900px" mx="auto">
-      <Button variant="ghost" onClick={() => navigate(backUrl)} mb="4">
-        ← Назад к проекту
-      </Button>
-
+      <Breadcrumbs />
       <Grid templateColumns="1fr 350px" gap="6" alignItems="start">
         {/* Left column: task details + comments */}
         <Stack gap="4">
@@ -188,7 +186,7 @@ export default function TaskPage() {
                     </NativeSelect.Field>
                   </NativeSelect.Root>
                   <Stack direction="row" gap="2">
-                    <Button colorPalette="brand" size="sm" onClick={handleSaveEdit} loading={updateTask.isPending}>
+                    <Button colorPalette="blue" size="sm" onClick={handleSaveEdit} loading={updateTask.isPending}>
                       Сохранить
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => setEditing(false)}>
@@ -331,7 +329,7 @@ export default function TaskPage() {
                     }
                   }}
                 />
-                <Button colorPalette="brand" size="sm" disabled={!commentText} onClick={handleAddComment} loading={createComment.isPending}>
+                <Button colorPalette="blue" size="sm" disabled={!commentText} onClick={handleAddComment} loading={createComment.isPending}>
                   Отправить
                 </Button>
               </Stack>
@@ -383,7 +381,7 @@ export default function TaskPage() {
               <Button
                 size="sm"
                 variant="outline"
-                colorPalette="brand"
+                colorPalette="blue"
                 loading={uploadFile.isPending}
                 onClick={() => document.getElementById("file-upload")?.click()}
               >

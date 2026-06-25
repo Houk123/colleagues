@@ -101,7 +101,7 @@ export default function TaskBoard({
     <Box>
       <Stack direction="row" justify="space-between" align="center" mb="4">
         <Heading size="md">Задачи</Heading>
-        <Button colorPalette="brand" onClick={() => setCreateOpen(true)}>
+        <Button colorPalette="blue" onClick={() => setCreateOpen(true)}>
           + Создать задачу
         </Button>
       </Stack>
@@ -202,7 +202,7 @@ export default function TaskBoard({
                       </NativeSelect.Field>
                     </NativeSelect.Root>
                   </Box>
-                  <Button colorPalette="brand" loading={createTask.isPending} onClick={handleCreate}>
+                  <Button colorPalette="blue" loading={createTask.isPending} onClick={handleCreate}>
                     Создать
                   </Button>
                 </Stack>
@@ -348,7 +348,7 @@ function TaskDetailDialog({
                       </NativeSelect.Field>
                     </NativeSelect.Root>
                     <Stack direction="row" gap="2">
-                      <Button colorPalette="brand" size="sm" onClick={handleSaveEdit} loading={updateTask.isPending}>
+                      <Button colorPalette="blue" size="sm" onClick={handleSaveEdit} loading={updateTask.isPending}>
                         Сохранить
                       </Button>
                       <Button variant="outline" size="sm" onClick={() => setEditing(false)}>
@@ -458,7 +458,7 @@ function TaskDetailDialog({
                             }
                           }}
                         />
-                        <Button colorPalette="brand" size="sm" disabled={!commentText} onClick={handleAddComment}>
+                        <Button colorPalette="blue" size="sm" disabled={!commentText} onClick={handleAddComment}>
                           Отправить
                         </Button>
                       </Stack>

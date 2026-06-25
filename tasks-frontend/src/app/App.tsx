@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Box } from "@chakra-ui/react";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
@@ -11,21 +11,25 @@ import JoinPortalPage from "@/pages/JoinPortalPage";
 import PortalRequestsPage from "@/pages/PortalRequestsPage";
 import PortalSettingsPage from "@/pages/PortalSettingsPage";
 import AcceptInvitePage from "@/pages/AcceptInvitePage";
+import HomePage from "@/pages/HomePage";
 import AuthGuard from "@/features/auth/ui/AuthGuard";
 import { AppHeader } from "@/widgets/AppHeader";
 
-function App() {
+function AppRoutes() {
+  const location = useLocation();
+  const isHome = location.pathname === "/";
+
   return (
-    <BrowserRouter>
-      <Box minH="100vh" bg="gray.50">
-        <AppHeader />
-        <Box maxW="1200px" mx="auto">
-          <Routes>
+    <Box minH="100vh" bg="gray.50">
+      <AppHeader />
+      <Box maxW={isHome ? undefined : "1200px"} mx={isHome ? undefined : "auto"}>
+        <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/invites/:token/accept" element={<AcceptInvitePage />} />
+            <Route path="/" element={<HomePage />} />
             <Route
-              path="/"
+              path="/portals"
               element={
                 <AuthGuard>
                   <PortalsPage />
@@ -92,8 +96,15 @@ function App() {
           </Routes>
         </Box>
       </Box>
-    </BrowserRouter>
-  );
-}
+    );
+  }
 
-export default App;
+  function App() {
+    return (
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    );
+  }
+
+  export default App;

@@ -87,7 +87,7 @@ export default function ProjectChat({ roomId }: { roomId: string }) {
               }
             }}
           />
-          <Button colorPalette="brand" size="sm" disabled={!text} onClick={handleSend} loading={sendMessage.isPending}>
+          <Button colorPalette="blue" size="sm" disabled={!text} onClick={handleSend} loading={sendMessage.isPending}>
             Отправить
           </Button>
         </Stack>
