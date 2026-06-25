@@ -17,6 +17,7 @@ import {
 } from "@chakra-ui/react";
 import { useAuthStore } from "@/entities/user/model/authStore";
 import SEO from "@/shared/ui/SEO";
+import { solutions } from "./solutions/data";
 import {
   FiLayers,
   FiCheckSquare,
@@ -246,6 +247,7 @@ export default function HomePage() {
   const stepsRef = useScrollReveal<HTMLDivElement>();
   const testimonialsHeaderRef = useScrollReveal<HTMLDivElement>();
   const testimonialsGridRef = useScrollReveal<HTMLDivElement>();
+  const solutionsRef = useScrollReveal<HTMLDivElement>();
   const ctaRef = useScrollReveal<HTMLDivElement>();
   const logoBarRef = useScrollReveal<HTMLDivElement>();
   const badgesRef = useRef<HTMLDivElement>(null);
@@ -690,6 +692,55 @@ export default function HomePage() {
               </SimpleGrid>
             </div>
           </Stack>
+        </Container>
+      </Box>
+
+      {/* Problem / Solution SEO block */}
+      <Box bg="slate.50" py={{ base: "20", md: "28" }}>
+        <Container maxW="1200px">
+          <div ref={solutionsRef} data-reveal-y="40">
+            <Stack gap="12">
+              <Box textAlign="center" maxW="720px" mx="auto">
+                <Text fontSize="sm" fontWeight="semibold" color="blue.600" mb="3" textTransform="uppercase" letterSpacing="wide">
+                  Частые вопросы
+                </Text>
+                <Heading size="3xl" mb="4" letterSpacing="-0.02em">
+                  Если у вас появлялись эти вопросы во время работы, то Коллеги помогут Вам с этим
+                </Heading>
+              </Box>
+
+              <SimpleGrid columns={{ base: 1, md: 2 }} gap="6">
+                {solutions.map((solution) => (
+                  <Card.Root
+                    key={solution.slug}
+                    p="6"
+                    bg="white"
+                    borderWidth="1px"
+                    borderColor="gray.200"
+                    cursor="pointer"
+                    _hover={{ borderColor: "blue.400", shadow: "lg", transform: "translateY(-4px)" }}
+                    transition="transform 0.25s ease, box-shadow 0.2s ease, border-color 0.2s ease"
+                    onClick={() => navigate(`/solutions/${solution.slug}`)}
+                  >
+                    <Card.Body>
+                      <Stack gap="4">
+                        <Heading size="md" color="gray.900" lineHeight="1.4">
+                          {solution.question}
+                        </Heading>
+                        <Text fontSize="sm" color="gray.600" lineHeight="1.6">
+                          {solution.description}
+                        </Text>
+                        <HStack gap="2" color="blue.600" fontSize="sm" fontWeight="semibold">
+                          <Text>Как решаем</Text>
+                          <FiArrowRight />
+                        </HStack>
+                      </Stack>
+                    </Card.Body>
+                  </Card.Root>
+                ))}
+              </SimpleGrid>
+            </Stack>
+          </div>
         </Container>
       </Box>
 

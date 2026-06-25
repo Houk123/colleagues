@@ -7,7 +7,14 @@ import { fileURLToPath } from 'url';
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const distDir = join(__dirname, '../dist');
 
-const routes = ['/', '/login', '/register'];
+const solutionRoutes = [
+  '/solutions/communication-with-clients',
+  '/solutions/replace-telegram-chats',
+  '/solutions/employee-kpi',
+  '/solutions/show-efficiency-to-clients',
+];
+
+const routes = ['/', '/login', '/register', ...solutionRoutes];
 
 function serveStatic(req, res) {
   let url = new URL(req.url, `http://${req.headers.host}`).pathname;
