@@ -34,7 +34,6 @@ const ENTITY_LABELS: Record<string, string> = {
 
 export default function PortalSettingsPage() {
   const { portalSlug } = useParams<{ portalSlug: string }>();
-  const navigate = useNavigate();
 
   const { data: portal } = useQuery({
     queryKey: ["portal", portalSlug],

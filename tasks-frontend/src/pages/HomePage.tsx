@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -11,8 +12,10 @@ import {
   Flex,
   SimpleGrid,
   Badge,
+  Skeleton,
 } from "@chakra-ui/react";
 import { useAuthStore } from "@/entities/user/model/authStore";
+import SEO from "@/shared/ui/SEO";
 import {
   FiLayers,
   FiCheckSquare,
@@ -155,9 +158,42 @@ function LogoBar() {
   );
 }
 
+function HomeSkeleton() {
+  return (
+    <Container maxW="1200px" py="10">
+      <Stack gap="8">
+        <Box>
+          <Skeleton h="8" w="320px" mb="3" />
+          <Skeleton h="5" w="480px" />
+        </Box>
+        <SimpleGrid columns={{ base: 1, md: 3 }} gap="4">
+          {[1, 2, 3].map((i) => (
+            <Card.Root key={i} p="5">
+              <Card.Body>
+                <Skeleton h="10" w="10" borderRadius="md" mb="3" />
+                <Skeleton h="5" w="140px" mb="2" />
+                <Skeleton h="4" w="full" />
+              </Card.Body>
+            </Card.Root>
+          ))}
+        </SimpleGrid>
+      </Stack>
+    </Container>
+  );
+}
+
 export default function HomePage() {
   const navigate = useNavigate();
   const token = useAuthStore((s) => s.token);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setReady(true);
+  }, []);
+
+  if (!ready) {
+    return <HomeSkeleton />;
+  }
 
   if (token) {
     return (
@@ -218,6 +254,10 @@ export default function HomePage() {
 
   return (
     <Box>
+      <SEO
+        title="Коллеги — рабочее пространство для агентств и фрилансеров"
+        description="Управляйте порталами, проектами, задачами, финансами и коммуникациями в одной платформе. Бесплатно для команд до 5 человек."
+      />
       {/* Hero */}
       <Box bg="#0f172a" color="white" position="relative" overflow="hidden">
         <Box

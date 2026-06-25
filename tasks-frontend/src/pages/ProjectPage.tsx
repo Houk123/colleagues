@@ -49,7 +49,7 @@ export default function ProjectPage() {
 
   const [taskOpen, setTaskOpen] = useState(false);
   const [taskDetailOpen, setTaskDetailOpen] = useState(false);
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [selectedTaskId] = useState<string | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDesc, setNewTaskDesc] = useState("");
   const [newTaskPriority, setNewTaskPriority] = useState<"low" | "medium" | "high" | "critical">("medium");

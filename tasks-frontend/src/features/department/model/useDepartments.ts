@@ -29,7 +29,7 @@ export function useAddDepartmentMember() {
   return useMutation({
     mutationFn: ({ departmentId, userId, role }: { departmentId: string; userId: string; role?: string }) =>
       addDepartmentMember(departmentId, userId, role),
-    onSuccess: (_data, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["departments"] });
     },
   });
