@@ -5,19 +5,24 @@ import {
   markAsRead,
   markAllAsRead,
 } from "../api/notificationApi.js";
+import { useAuthStore } from "@/entities/user/model/authStore.js";
 
 export function useNotifications() {
+  const token = useAuthStore((s) => s.token);
   return useQuery({
     queryKey: ["notifications"],
     queryFn: fetchNotifications,
+    enabled: !!token,
   });
 }
 
 export function useUnreadCount() {
+  const token = useAuthStore((s) => s.token);
   return useQuery({
     queryKey: ["notifications", "unread-count"],
     queryFn: fetchUnreadCount,
     refetchInterval: 30000,
+    enabled: !!token,
   });
 }
 
