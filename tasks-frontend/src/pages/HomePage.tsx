@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useLayoutEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { animate, stagger } from "animejs";
 import {
@@ -61,9 +61,9 @@ const features = [
   },
 ];
 
-function FeatureCard({ icon: Icon, title, description, cardRef }: { icon: React.ElementType; title: string; description: string; cardRef?: React.Ref<HTMLDivElement> }) {
+function FeatureCard({ icon: Icon, title, description }: { icon: React.ElementType; title: string; description: string }) {
   return (
-    <Card.Root ref={cardRef} p="6" h="full" borderWidth="1px" borderColor="gray.200" bg="white" _hover={{ shadow: "lg", borderColor: "blue.300" }} transition="all 0.2s">
+    <Card.Root className="feature-card" p="6" h="full" borderWidth="1px" borderColor="gray.200" bg="white" _hover={{ shadow: "lg", borderColor: "blue.300", transform: "translateY(-6px)" }} transition="transform 0.25s ease, box-shadow 0.2s ease, border-color 0.2s ease">
       <Card.Body>
         <Box w="12" h="12" borderRadius="lg" bg="blue.50" display="flex" alignItems="center" justifyContent="center" mb="4">
           <Icon size={24} color="#2563eb" />
@@ -184,10 +184,12 @@ function HomeSkeleton() {
 }
 
 function useScrollReveal<T extends HTMLElement>(threshold = 0.15) {
-  const ref = useRef<T>(null);
+  const [element, setElement] = useState<T | null>(null);
+  const ref = useCallback((node: T | null) => {
+    if (node) setElement(node);
+  }, []);
 
-  useEffect(() => {
-    const element = ref.current;
+  useLayoutEffect(() => {
     if (!element) return;
 
     const children = element.dataset.revealChildren === "true" ? Array.from(element.children) : [element];
@@ -227,7 +229,7 @@ function useScrollReveal<T extends HTMLElement>(threshold = 0.15) {
 
     observer.observe(element);
     return () => observer.disconnect();
-  }, [threshold]);
+  }, [element, threshold]);
 
   return ref;
 }
@@ -242,8 +244,12 @@ export default function HomePage() {
   const featuresGridRef = useScrollReveal<HTMLDivElement>();
   const stepsHeaderRef = useScrollReveal<HTMLDivElement>();
   const stepsRef = useScrollReveal<HTMLDivElement>();
-  const testimonialsRef = useScrollReveal<HTMLDivElement>();
+  const testimonialsHeaderRef = useScrollReveal<HTMLDivElement>();
+  const testimonialsGridRef = useScrollReveal<HTMLDivElement>();
   const ctaRef = useScrollReveal<HTMLDivElement>();
+  const logoBarRef = useScrollReveal<HTMLDivElement>();
+  const badgesRef = useRef<HTMLDivElement>(null);
+  const blobsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setReady(true);
@@ -281,6 +287,41 @@ export default function HomePage() {
         loop: true,
         alternate: true,
         ease: "inOutSine",
+      });
+    } catch {
+      // ignore
+    }
+  }, [ready]);
+
+  useEffect(() => {
+    if (!ready || !badgesRef.current) return;
+    const badges = badgesRef.current.querySelectorAll(".hero-badge");
+    try {
+      animate(badges, {
+        y: [0, -8, 0],
+        duration: 4000,
+        loop: true,
+        alternate: true,
+        ease: "inOutSine",
+        delay: stagger(800, { start: 200 }),
+      });
+    } catch {
+      // ignore
+    }
+  }, [ready]);
+
+  useEffect(() => {
+    if (!ready || !blobsRef.current) return;
+    const blobs = blobsRef.current.querySelectorAll(".hero-blob");
+    try {
+      animate(blobs, {
+        scale: [1, 1.08, 1],
+        opacity: [0.1, 0.18, 0.1],
+        duration: 8000,
+        loop: true,
+        alternate: true,
+        ease: "inOutSine",
+        delay: stagger(2000),
       });
     } catch {
       // ignore
@@ -356,28 +397,32 @@ export default function HomePage() {
       />
       {/* Hero */}
       <Box bg="#0f172a" color="white" position="relative" overflow="hidden">
-        <Box
-          position="absolute"
-          top="-20%"
-          right="-10%"
-          w="700px"
-          h="700px"
-          borderRadius="full"
-          bg="blue.600"
-          opacity="0.15"
-          filter="blur(100px)"
-        />
-        <Box
-          position="absolute"
-          bottom="-30%"
-          left="-15%"
-          w="600px"
-          h="600px"
-          borderRadius="full"
-          bg="blue.500"
-          opacity="0.1"
-          filter="blur(100px)"
-        />
+        <div ref={blobsRef} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+          <Box
+            position="absolute"
+            top="-20%"
+            right="-10%"
+            w="700px"
+            h="700px"
+            borderRadius="full"
+            bg="blue.600"
+            opacity="0.15"
+            filter="blur(100px)"
+            className="hero-blob"
+          />
+          <Box
+            position="absolute"
+            bottom="-30%"
+            left="-15%"
+            w="600px"
+            h="600px"
+            borderRadius="full"
+            bg="blue.500"
+            opacity="0.1"
+            filter="blur(100px)"
+            className="hero-blob"
+          />
+        </div>
 
         <Container maxW="1200px" position="relative" zIndex="1" py={{ base: "20", md: "28" }}>
           <Stack gap="12">
@@ -447,48 +492,52 @@ export default function HomePage() {
                 <div ref={mockupRef}>
                   <DashboardMockup />
                 </div>
-                <Box
-                  position="absolute"
-                  top="-20px"
-                  right="-20px"
-                  display={{ base: "none", lg: "block" }}
-                  className="hero-badge"
-                >
+                <div ref={badgesRef} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
                   <Box
-                    p="3"
-                    bg="white"
-                    borderRadius="lg"
-                    shadow="xl"
-                    borderLeft="4px solid"
-                    borderColor="green.500"
+                    position="absolute"
+                    top="-20px"
+                    right="-20px"
+                    display={{ base: "none", lg: "block" }}
+                    className="hero-badge"
                   >
-                    <Text fontSize="xs" fontWeight="bold" color="gray.900">Счёт оплачен</Text>
-                    <Text fontSize="xs" color="gray.500">Acme Corp · ₽ 48 000</Text>
+                    <Box
+                      p="3"
+                      bg="white"
+                      borderRadius="lg"
+                      shadow="xl"
+                      borderLeft="4px solid"
+                      borderColor="green.500"
+                    >
+                      <Text fontSize="xs" fontWeight="bold" color="gray.900">Счёт оплачен</Text>
+                      <Text fontSize="xs" color="gray.500">Acme Corp · ₽ 48 000</Text>
+                    </Box>
                   </Box>
-                </Box>
-                <Box
-                  position="absolute"
-                  bottom="-10px"
-                  left="-10px"
-                  display={{ base: "none", lg: "block" }}
-                  className="hero-badge"
-                >
                   <Box
-                    p="3"
-                    bg="blue.600"
-                    borderRadius="lg"
-                    shadow="xl"
+                    position="absolute"
+                    bottom="-10px"
+                    left="-10px"
+                    display={{ base: "none", lg: "block" }}
+                    className="hero-badge"
                   >
-                    <Text fontSize="xs" fontWeight="bold" color="white">3 задачи на сегодня</Text>
+                    <Box
+                      p="3"
+                      bg="blue.600"
+                      borderRadius="lg"
+                      shadow="xl"
+                    >
+                      <Text fontSize="xs" fontWeight="bold" color="white">3 задачи на сегодня</Text>
+                    </Box>
                   </Box>
-                </Box>
+                </div>
               </Box>
             </Flex>
           </Stack>
         </Container>
       </Box>
 
-      <LogoBar />
+      <div ref={logoBarRef} data-reveal-y="20">
+        <LogoBar />
+      </div>
 
       {/* Features */}
       <Box bg="slate.50" py={{ base: "20", md: "28" }}>
@@ -568,7 +617,7 @@ export default function HomePage() {
                     desc: "Создавайте задачи, отслеживайте бюджет и общайтесь в чатах.",
                   },
                 ].map((step, i) => (
-                  <Stack key={step.title} align={{ base: "flex-start", lg: "center" }} textAlign={{ base: "left", lg: "center" }} gap="4" h="full" flex="1">
+                  <Stack key={step.title} className="step-card" align={{ base: "flex-start", lg: "center" }} textAlign={{ base: "left", lg: "center" }} gap="4" h="full" flex="1" _hover={{ transform: "translateY(-6px)" }} transition="transform 0.25s ease">
                     <Box
                       w="16"
                       h="16"
@@ -608,7 +657,7 @@ export default function HomePage() {
       <Box bg="#0f172a" color="white" py={{ base: "20", md: "28" }}>
         <Container maxW="1200px">
           <Stack gap="16">
-            <div ref={testimonialsRef} data-reveal-y="40">
+            <div ref={testimonialsHeaderRef} data-reveal-y="40">
               <Box textAlign="center" maxW="640px" mx="auto">
                 <Text fontSize="sm" fontWeight="semibold" color="blue.400" mb="3" textTransform="uppercase" letterSpacing="wide">
                   Отзывы
@@ -619,14 +668,14 @@ export default function HomePage() {
               </Box>
             </div>
 
-            <div data-reveal-children="true" data-reveal-stagger="120">
+            <div ref={testimonialsGridRef} data-reveal-children="true" data-reveal-stagger="120">
               <SimpleGrid columns={{ base: 1, md: 3 }} gap="6">
                 {[
                   { text: "Коллеги заменили нам Trello, Excel и переписку в Telegram. Всё в одном месте.", author: "Анна К.", role: "Project Manager" },
                   { text: "Наконец-то видно, сколько времени уходит на каждый проект и сколько он приносит.", author: "Дмитрий В.", role: "CEO, DevStudio" },
                   { text: "Клиенты видят статус задач без доступа к внутренним процессам. Очень удобно.", author: "Марина С.", role: "Product Owner" },
                 ].map((t) => (
-                  <Card.Root key={t.author} p="6" bg="whiteAlpha.50" borderWidth="1px" borderColor="whiteAlpha.200" h="full">
+                  <Card.Root key={t.author} className="testimonial-card" p="6" bg="whiteAlpha.50" borderWidth="1px" borderColor="whiteAlpha.200" h="full" _hover={{ transform: "translateY(-6px)" }} transition="transform 0.25s ease">
                     <Card.Body>
                       <Text fontSize="md" color="slate.200" mb="8" lineHeight="1.7">
                         "{t.text}"
