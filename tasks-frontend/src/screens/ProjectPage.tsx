@@ -18,6 +18,8 @@ import {
   Input,
   NativeSelect,
   Textarea,
+  HStack,
+  Flex,
 } from "@chakra-ui/react";
 import { useProjectBySlug, useProjectPhases, useCreatePhase, useProjectServices, useAddProjectService, useProjectTransactions, useCreateTransaction, useAddProjectMember } from "@/features/project/model/useProjects";
 import { usePortalServices, useCreatePortalService } from "@/features/portal/model/useServices";
@@ -32,6 +34,7 @@ import { useProjectStatistics } from "@/features/statistics/model/useStatistics"
 import { useAuthStore } from "@/entities/user/model/authStore";
 import { Breadcrumbs } from "@/widgets/Breadcrumbs";
 import { useSocket } from "@/shared/hooks/useSocket";
+import { FiFolder, FiUsers, FiPlus, FiDollarSign, FiList, FiClock, FiBarChart2, FiPackage, FiCreditCard } from "react-icons/fi";
 
 export default function ProjectPage({ portalSlug, orgSlug, projectSlug }: { portalSlug: string; orgSlug: string; projectSlug: string }) {
   const router = useRouter();
@@ -134,69 +137,109 @@ export default function ProjectPage({ portalSlug, orgSlug, projectSlug }: { port
   const isNegative = balance < 0;
 
   return (
-    <Box p="6">
-      <Breadcrumbs />
-      <Stack direction="row" justify="space-between" align="flex-start" mb="6">
-        <Box>
-          <Heading mb="1">{project?.name ?? "Загрузка..."}</Heading>
-          <Badge colorPalette={project?.status === "active" ? "green" : "gray"} mb="2">
-            {project?.status}
-          </Badge>
-        </Box>
-        <Card.Root p="4" minW="240px">
+    <Box bg="gray.50" minH="calc(100vh - 56px)" p="6">
+      <Box maxW="1200px" mx="auto">
+        <Breadcrumbs />
+
+        <Card.Root p="4" mb="4" bg="white" borderWidth="1px" borderColor="gray.100" boxShadow="0 1px 2px rgba(0,0,0,0.04)">
           <Card.Body>
-            <Text fontSize="sm" color="gray.500">Кошелёк проекта</Text>
-            <Text
-              fontSize="2xl"
-              fontWeight="bold"
-              color={isNegative ? "red.500" : "green.500"}
-            >
-              {isNegative ? "−" : ""}
-              {Math.abs(balance).toLocaleString("ru-RU")} {project?.wallet?.currency ?? "RUB"}
-            </Text>
-            {isNegative && (
-              <Text color="red.500" fontSize="sm" mt="1">Превышен бюджет</Text>
+            <Flex direction={{ base: "column", md: "row" }} gap="4" justify="space-between" align={{ base: "flex-start", md: "center" }}>
+              <HStack gap="3">
+                <Box w="10" h="10" borderRadius="md" bg="green.50" display="flex" alignItems="center" justifyContent="center">
+                  <Box as={FiFolder} color="green.600" fontSize="20px" />
+                </Box>
+                <Stack gap="0">
+                  <Heading size="md" color="gray.900" mb="1">{project?.name ?? "Загрузка..."}</Heading>
+                  <Badge colorPalette={project?.status === "active" ? "green" : "gray"} w="fit-content" size="sm">
+                    {project?.status}
+                  </Badge>
+                </Stack>
+              </HStack>
+              <Stack gap="0" textAlign={{ base: "left", md: "right" }}>
+                <Text fontSize="xs" color="gray.500">Кошелёк проекта</Text>
+                <Text
+                  fontSize="xl"
+                  fontWeight="bold"
+                  color={isNegative ? "red.500" : "green.500"}
+                >
+                  {isNegative ? "−" : ""}
+                  {Math.abs(balance).toLocaleString("ru-RU")} {project?.wallet?.currency ?? "RUB"}
+                </Text>
+              </Stack>
+            </Flex>
+          </Card.Body>
+        </Card.Root>
+
+        <Card.Root p="5" mb="6" bg="white" borderWidth="1px" borderColor="gray.100" boxShadow="0 1px 2px rgba(0,0,0,0.04)">
+          <Card.Body>
+            <Flex justify="space-between" align="center" mb="4">
+              <HStack gap="3">
+                <Box w="8" h="8" borderRadius="md" bg="gray.100" display="flex" alignItems="center" justifyContent="center">
+                  <Box as={FiUsers} color="gray.600" fontSize="16px" />
+                </Box>
+                <Heading size="md" color="gray.900">Участники проекта</Heading>
+              </HStack>
+              <Button size="sm" colorPalette="blue" variant="outline" onClick={() => setMemberOpen(true)}>
+                <FiPlus /> Добавить участника
+              </Button>
+            </Flex>
+            <Stack gap="3">
+              {project?.userProjects.map((up) => (
+                <Card.Root key={up.id} p="3" bg="gray.50" borderWidth="1px" borderColor="gray.100">
+                  <Card.Body>
+                    <Flex justify="space-between" align="center">
+                      <HStack gap="3">
+                        <Box w="8" h="8" borderRadius="full" bg="blue.600" color="white" display="flex" alignItems="center" justifyContent="center" fontWeight="700" fontSize="xs">
+                          {(up.user.name || up.user.email || "?").charAt(0).toUpperCase()}
+                        </Box>
+                        <Stack gap="0">
+                          <Text fontSize="sm" fontWeight="medium" color="gray.900">{up.user.name || up.user.email}</Text>
+                          <Text fontSize="xs" color="gray.500">{up.user.email}</Text>
+                        </Stack>
+                      </HStack>
+                      <Badge colorPalette="blue" size="sm">{up.role.name}</Badge>
+                    </Flex>
+                  </Card.Body>
+                </Card.Root>
+              ))}
+            </Stack>
+            {!project?.userProjects.length && (
+              <Box textAlign="center" py="8">
+                <Text color="gray.500">Нет участников.</Text>
+              </Box>
             )}
           </Card.Body>
         </Card.Root>
-      </Stack>
 
-      <Card.Root p="4" mb="6">
-        <Card.Body>
-          <Stack direction="row" justify="space-between" align="center" mb="3">
-            <Heading size="md">Участники проекта</Heading>
-            <Button size="sm" colorPalette="green" onClick={() => setMemberOpen(true)}>
-              + Добавить участника
-            </Button>
-          </Stack>
-          <Stack gap="2">
-            {project?.userProjects.map((up) => (
-              <Stack key={up.id} direction="row" justify="space-between" align="center">
-                <Text>
-                  {up.user.name || up.user.email} <Text as="span" color="gray.500">({up.user.email})</Text>
-                </Text>
-                <Badge colorPalette="blue">{up.role.name}</Badge>
-              </Stack>
-            ))}
-          </Stack>
-          {!project?.userProjects.length && <Text color="gray.500">Нет участников.</Text>}
-        </Card.Body>
-      </Card.Root>
-
-      <Tabs.Root defaultValue="phases">
-        <Tabs.List>
-          <Tabs.Trigger value="tasks">Задачи</Tabs.Trigger>
-          <Tabs.Trigger value="phases">Фазы</Tabs.Trigger>
-          <Tabs.Trigger value="services">Услуги</Tabs.Trigger>
-          <Tabs.Trigger value="transactions">Транзакции</Tabs.Trigger>
-          <Tabs.Trigger value="statistics">Статистика</Tabs.Trigger>
-        </Tabs.List>
+        <Card.Root p="5" bg="white" borderWidth="1px" borderColor="gray.100" boxShadow="0 1px 2px rgba(0,0,0,0.04)">
+          <Card.Body>
+        <Tabs.Root defaultValue="phases" w="full">
+          <Tabs.List p="1" borderWidth="1px" borderColor="gray.100" borderRadius="lg" boxShadow="0 1px 2px rgba(0,0,0,0.04)">
+            <Tabs.Trigger value="tasks">
+              <HStack gap="2"><Box as={FiList} fontSize="14px" /><Text>Задачи</Text></HStack>
+            </Tabs.Trigger>
+            <Tabs.Trigger value="phases">
+              <HStack gap="2"><Box as={FiClock} fontSize="14px" /><Text>Фазы</Text></HStack>
+            </Tabs.Trigger>
+            <Tabs.Trigger value="services">
+              <HStack gap="2"><Box as={FiPackage} fontSize="14px" /><Text>Услуги</Text></HStack>
+            </Tabs.Trigger>
+            <Tabs.Trigger value="transactions">
+              <HStack gap="2"><Box as={FiCreditCard} fontSize="14px" /><Text>Транзакции</Text></HStack>
+            </Tabs.Trigger>
+            <Tabs.Trigger value="statistics">
+              <HStack gap="2"><Box as={FiBarChart2} fontSize="14px" /><Text>Статистика</Text></HStack>
+            </Tabs.Trigger>
+          </Tabs.List>
 
         <Tabs.Content value="tasks">
           <Stack gap="4" mt="4">
-            <Button onClick={() => setTaskOpen(true)} colorPalette="blue" w="fit-content">
-              + Создать задачу
-            </Button>
+            <Flex justify="space-between" align="center">
+              <Heading size="sm" color="gray.900">Задачи</Heading>
+              <Button onClick={() => setTaskOpen(true)} colorPalette="blue" variant="outline" size="sm">
+                <FiPlus /> Создать задачу
+              </Button>
+            </Flex>
             <KanbanBoard
               tasks={tasks ?? []}
               onTaskClick={(taskId) => {
@@ -208,9 +251,12 @@ export default function ProjectPage({ portalSlug, orgSlug, projectSlug }: { port
 
         <Tabs.Content value="phases">
           <Stack gap="4" mt="4">
-            <Button onClick={() => setPhaseOpen(true)} colorPalette="blue" w="fit-content">
-              + Добавить фазу
-            </Button>
+            <Flex justify="space-between" align="center">
+              <Heading size="sm" color="gray.900">Фазы проекта</Heading>
+              <Button onClick={() => setPhaseOpen(true)} colorPalette="blue" variant="outline" size="sm">
+                <FiPlus /> Добавить фазу
+              </Button>
+            </Flex>
             <Grid templateColumns="repeat(auto-fill, minmax(300px, 1fr))" gap="4">
               {phases?.map((phase) => (
                 <Card.Root key={phase.id} p="4" borderWidth={phase.isCurrent ? "2px" : "1px"} borderColor={phase.isCurrent ? "blue.400" : undefined}>
@@ -239,14 +285,17 @@ export default function ProjectPage({ portalSlug, orgSlug, projectSlug }: { port
 
         <Tabs.Content value="services">
           <Stack gap="4" mt="4">
-            <Stack direction="row" gap="2">
-              <Button onClick={() => setServiceOpen(true)} colorPalette="blue" w="fit-content">
-                + Подключить услугу
-              </Button>
-              <Button onClick={() => setPortalServiceOpen(true)} colorPalette="gray" variant="outline" w="fit-content">
-                + Новая услуга портала
-              </Button>
-            </Stack>
+            <Flex justify="space-between" align="center">
+              <Heading size="sm" color="gray.900">Подключённые услуги</Heading>
+              <Stack direction="row" gap="2">
+                <Button onClick={() => setServiceOpen(true)} colorPalette="blue" variant="outline" size="sm">
+                  <FiPlus /> Подключить услугу
+                </Button>
+                <Button onClick={() => setPortalServiceOpen(true)} colorPalette="gray" variant="outline" size="sm">
+                  <FiPlus /> Новая услуга портала
+                </Button>
+              </Stack>
+            </Flex>
             <Grid templateColumns="repeat(auto-fill, minmax(280px, 1fr))" gap="4">
               {projectServices?.map((ps) => (
                 <Card.Root key={ps.id} p="4">
@@ -276,9 +325,12 @@ export default function ProjectPage({ portalSlug, orgSlug, projectSlug }: { port
 
         <Tabs.Content value="transactions">
           <Stack gap="4" mt="4">
-            <Button onClick={() => setDepositOpen(true)} colorPalette="green" w="fit-content">
-              + Пополнить кошелёк
-            </Button>
+            <Flex justify="space-between" align="center">
+              <Heading size="sm" color="gray.900">Транзакции</Heading>
+              <Button onClick={() => setDepositOpen(true)} colorPalette="green" variant="outline" size="sm">
+                <FiPlus /> Пополнить кошелёк
+              </Button>
+            </Flex>
             <Stack gap="2">
               {transactions?.map((t) => (
                 <Card.Root key={t.id} p="3">
@@ -304,6 +356,7 @@ export default function ProjectPage({ portalSlug, orgSlug, projectSlug }: { port
 
         <Tabs.Content value="statistics">
           <Stack gap="4" mt="4">
+            <Heading size="sm" color="gray.900">Статистика</Heading>
             <Stack direction="row" gap="4">
               <Card.Root p="4" flex="1">
                 <Card.Body>
@@ -335,6 +388,8 @@ export default function ProjectPage({ portalSlug, orgSlug, projectSlug }: { port
           </Stack>
         </Tabs.Content>
       </Tabs.Root>
+          </Card.Body>
+        </Card.Root>
 
       {/* Create Phase Dialog */}
       <Dialog.Root open={phaseOpen} onOpenChange={(e) => setPhaseOpen(e.open)}>
@@ -653,6 +708,7 @@ export default function ProjectPage({ portalSlug, orgSlug, projectSlug }: { port
           </Dialog.Positioner>
         </Portal>
       </Dialog.Root>
+      </Box>
     </Box>
   );
 }
