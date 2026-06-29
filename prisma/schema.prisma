@@ -19,13 +19,6 @@ enum ProjectStatus {
   closed
 }
 
-enum TaskStatus {
-  todo
-  in_progress
-  review
-  done
-  cancelled
-}
 
 enum Priority {
   low
@@ -292,6 +285,7 @@ model Project {
   taskStatistics TaskStatistic[]
   invites      Invite[]
   phases       ProjectPhase[]
+  taskStatuses ProjectTaskStatus[]
 
   @@unique([portalId, slug])
   @@map("projects")
@@ -414,7 +408,7 @@ model Task {
   assigneeId  String?
   title       String
   description String?
-  status      TaskStatus @default(todo)
+  status      String     @default("todo")
   priority    Priority   @default(medium)
   criticalId  String?
   categoryId  String?
@@ -436,6 +430,22 @@ model Task {
   statistic  TaskStatistic?
 
   @@map("tasks")
+}
+
+model ProjectTaskStatus {
+  id        String   @id @default(uuid())
+  projectId String
+  name      String
+  color     String   @default("#9ca3af")
+  order     Int      @default(0)
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, name])
+  @@map("project_task_statuses")
 }
 
 model UserTask {

@@ -32,7 +32,23 @@ async function main() {
     },
   });
 
-  console.log("Seeded roles + admin user (admin@colleagues.local / password123)");
+  const projects = await prisma.project.findMany();
+  const DEFAULT_STATUSES = [
+    { name: "todo",        color: "#9ca3af", order: 0, isDefault: true },
+    { name: "in_progress", color: "#3b82f6", order: 1, isDefault: true },
+    { name: "review",      color: "#a855f7", order: 2, isDefault: true },
+    { name: "done",        color: "#22c55e", order: 3, isDefault: true },
+    { name: "cancelled",   color: "#ef4444", order: 4, isDefault: true },
+  ];
+  for (const project of projects) {
+    const existing = await prisma.projectTaskStatus.count({ where: { projectId: project.id } });
+    if (existing > 0) continue;
+    await prisma.projectTaskStatus.createMany({
+      data: DEFAULT_STATUSES.map((s) => ({ ...s, projectId: project.id })),
+    });
+  }
+
+  console.log("Seeded roles + admin user + project task statuses");
 }
 
 main()

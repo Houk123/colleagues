@@ -3,6 +3,7 @@ import type { AuthRequest } from "../middleware/auth.js";
 import * as projectService from "../services/projectService.js";
 import * as portalService from "../services/portalService.js";
 import { prisma } from "../config/db.js";
+import { seedDefaultStatuses } from "./taskStatusController.js";
 
 async function isPortalOwner(userId: string, portalId: string): Promise<boolean> {
   const portal = await portalService.getPortalById(portalId);
@@ -65,6 +66,8 @@ export async function createProject(req: AuthRequest, res: Response): Promise<vo
       portalId,
       organizationId,
     });
+
+    await seedDefaultStatuses(project.id);
 
     res.status(201).json({ project });
   } catch (err) {

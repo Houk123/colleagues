@@ -7,7 +7,7 @@ export interface Task {
   assigneeId: string | null;
   title: string;
   description: string | null;
-  status: "todo" | "in_progress" | "review" | "done" | "cancelled";
+  status: string;
   priority: "low" | "medium" | "high" | "critical";
   criticalId: string | null;
   categoryId: string | null;
@@ -53,6 +53,7 @@ export interface CreateTaskInput {
   dueDate?: string;
   categoryId?: string;
   criticalId?: string;
+  status?: string;
 }
 
 export interface UpdateTaskInput {
@@ -63,7 +64,7 @@ export interface UpdateTaskInput {
   dueDate?: string | null;
   categoryId?: string | null;
   criticalId?: string | null;
-  status?: "todo" | "in_progress" | "review" | "done" | "cancelled";
+  status?: string;
 }
 
 export interface Comment {
@@ -101,7 +102,7 @@ export async function updateTask(taskId: string, input: UpdateTaskInput): Promis
   return data.task;
 }
 
-export async function updateTaskStatus(taskId: string, status: Task["status"]): Promise<Task> {
+export async function updateTaskStatus(taskId: string, status: string): Promise<Task> {
   const { data } = await api.patch<{ task: Task }>(`/tasks/${taskId}/status`, { status });
   return data.task;
 }

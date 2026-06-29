@@ -236,16 +236,24 @@ export default function ProjectPage({ portalSlug, orgSlug, projectSlug }: { port
           <Stack gap="4" mt="4">
             <Flex justify="space-between" align="center">
               <Heading size="sm" color="gray.900">Задачи</Heading>
-              <Button onClick={() => setTaskOpen(true)} colorPalette="blue" variant="outline" size="sm">
-                <FiPlus /> Создать задачу
+              <Button onClick={() => router.push(`/portals/${portalSlug}/organizations/${orgSlug}/projects/${projectSlug}/tasks`)} colorPalette="blue" variant="outline" size="sm">
+                Открыть доску задач
               </Button>
             </Flex>
-            <KanbanBoard
-              tasks={tasks ?? []}
-              onTaskClick={(taskId) => {
-                router.push(`/portals/${portalSlug}/organizations/${orgSlug}/projects/${projectSlug}/tasks/${taskId}`);
-              }}
-            />
+            <Card.Root p="4" borderStyle="dashed" borderColor="gray.300">
+              <Card.Body textAlign="center">
+                <Text color="gray.500" mb="3">
+                  Задачи вынесены на отдельную страницу с полноценной Kanban-доской.
+                </Text>
+                <Button
+                  size="sm"
+                  colorPalette="blue"
+                  onClick={() => router.push(`/portals/${portalSlug}/organizations/${orgSlug}/projects/${projectSlug}/tasks`)}
+                >
+                  Перейти к задачам
+                </Button>
+              </Card.Body>
+            </Card.Root>
           </Stack>
         </Tabs.Content>
 
@@ -895,58 +903,3 @@ function DepositForm({
   );
 }
 
-function KanbanBoard({
-  tasks,
-  onTaskClick,
-}: {
-  tasks: { id: string; title: string; status: string; priority: string; assignee: { name: string; email: string } | null; taskTags: { tag: { name: string; color: string | null } }[] }[];
-  onTaskClick: (taskId: string) => void;
-}) {
-  const columns: { key: string; label: string; color: string }[] = [
-    { key: "todo", label: "К выполнению", color: "gray" },
-    { key: "in_progress", label: "В работе", color: "blue" },
-    { key: "review", label: "На review", color: "purple" },
-    { key: "done", label: "Готово", color: "green" },
-  ];
-
-  return (
-    <Grid templateColumns="repeat(4, 1fr)" gap="4" alignItems="start">
-      {columns.map((col) => (
-        <Stack key={col.key} gap="3">
-          <Text fontWeight="bold" color={`${col.color}.600`}>{col.label}</Text>
-          <Stack gap="2">
-            {tasks
-              .filter((t) => t.status === col.key)
-              .map((t) => (
-                <Card.Root
-                  key={t.id}
-                  p="3"
-                  borderWidth="1px"
-                  cursor="pointer"
-                  _hover={{ shadow: "sm", borderColor: "blue.300" }}
-                  onClick={() => onTaskClick(t.id)}
-                >
-                  <Card.Body>
-                    <Text fontWeight="medium" mb="1">{t.title}</Text>
-                    <Stack direction="row" gap="1" mb="1">
-                      {t.taskTags.map((tt) => (
-                        <Badge key={tt.tag.name} size="sm" colorPalette={tt.tag.color ? undefined : "blue"} bg={tt.tag.color ?? undefined}>
-                          {tt.tag.name}
-                        </Badge>
-                      ))}
-                    </Stack>
-                    <Text fontSize="xs" color="gray.500">
-                      {t.assignee ? t.assignee.name || t.assignee.email : "Не назначен"}
-                    </Text>
-                  </Card.Body>
-                </Card.Root>
-              ))}
-            {tasks.filter((t) => t.status === col.key).length === 0 && (
-              <Text color="gray.500" fontSize="sm">Нет задач</Text>
-            )}
-          </Stack>
-        </Stack>
-      ))}
-    </Grid>
-  );
-}

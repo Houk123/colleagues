@@ -13,7 +13,6 @@ import {
   Text,
   Badge,
   Input,
-  Textarea,
   NativeSelect,
 } from "@chakra-ui/react";
 import {
@@ -40,6 +39,7 @@ import { useProjectServices } from "@/features/project/model/useProjects";
 import { useAttachmentsByTask, useUploadFile, useDeleteAttachment } from "@/features/attachment/model/useAttachments";
 import { useSubscriptions, useSubscribe, useUnsubscribe } from "@/features/subscription/model/useSubscriptions";
 import { Breadcrumbs } from "@/widgets/Breadcrumbs";
+import { LexicalEditor, LexicalViewer } from "@/shared/ui/LexicalEditor";
 
 const STATUS_LABELS: Record<string, string> = {
   todo: "К выполнению",
@@ -155,9 +155,9 @@ export default function TaskPage({ portalSlug, orgSlug, projectSlug, taskId }: {
   };
 
   return (
-    <Box p="6" maxW="900px" mx="auto">
+    <Box p="6" maxW="1200px" mx="auto">
       <Breadcrumbs />
-      <Grid templateColumns="1fr 350px" gap="6" alignItems="start">
+      <Grid templateColumns="1fr 600px" gap="6" alignItems="start">
         {/* Left column: task details + comments */}
         <Stack gap="4">
           {editing ? (
@@ -165,7 +165,12 @@ export default function TaskPage({ portalSlug, orgSlug, projectSlug, taskId }: {
               <Card.Body>
                 <Stack gap="3">
                   <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="Название" />
-                  <Textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} placeholder="Описание" />
+                  <LexicalEditor
+                  value={editDesc}
+                  onChange={(json) => setEditDesc(json)}
+                  placeholder="Описание задачи..."
+                  minHeight="160px"
+                />
                   <NativeSelect.Root>
                     <NativeSelect.Field value={editPriority} onChange={(e) => setEditPriority(e.target.value)}>
                       <option value="low">Низкий</option>
@@ -209,7 +214,7 @@ export default function TaskPage({ portalSlug, orgSlug, projectSlug, taskId }: {
                   )}
                 </Stack>
                 {task.description ? (
-                  <Text color="gray.700" whiteSpace="pre-wrap">{task.description}</Text>
+                  <LexicalViewer content={task.description} />
                 ) : (
                   <Text color="gray.500" fontSize="sm">Нет описания</Text>
                 )}
